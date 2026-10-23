@@ -7,6 +7,7 @@ const MAX_TERUG = 100
 
 const ALLE_KAARTEN = GROEPEN.flatMap((g) => g.kaarten)
 const zoekKaart = (id) => ALLE_KAARTEN.find((k) => k.id === id)
+const groepVan = (kaart) => GROEPEN.find((g) => g.kaarten.includes(kaart))
 
 function laadSpel() {
   try {
@@ -46,37 +47,68 @@ function bekijkGroep(groep, spel) {
   return { over, antwoord }
 }
 
-function Pion({ kleur }) {
+// De achtergrond van het plaatjesvak: bij personages hun eigen kleur.
+function tint(kaart) {
+  if (!kaart.kleur) return undefined
+  if (kaart.kleur === '#ffffff') return { '--tint': '#ddd6c8' }
+  return { '--tint': `color-mix(in srgb, ${kaart.kleur} 32%, #fffaf0)` }
+}
+
+function Pion({ id, kleur }) {
+  const glans = `glans-${id}`
+  const lijn = kleur === '#ffffff' ? '#8a8173' : 'rgba(0,0,0,.5)'
   return (
     <svg viewBox="0 0 100 100" className="tekening" aria-hidden="true">
-      <ellipse cx="50" cy="88" rx="30" ry="8" fill={kleur} stroke="rgba(0,0,0,.45)" strokeWidth="3" />
-      <path
-        d="M31 86 C35 70 42 60 43 47 L57 47 C58 60 65 70 69 86 Z"
-        fill={kleur}
-        stroke="rgba(0,0,0,.45)"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      <ellipse cx="50" cy="47" rx="15" ry="5" fill={kleur} stroke="rgba(0,0,0,.45)" strokeWidth="3" />
-      <circle cx="50" cy="29" r="14" fill={kleur} stroke="rgba(0,0,0,.45)" strokeWidth="3" />
-      <ellipse cx="45" cy="24" rx="4" ry="5" fill="rgba(255,255,255,.55)" />
-      <path d="M40 80 C42 70 45 62 46 52" stroke="rgba(255,255,255,.45)" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <defs>
+        <radialGradient id={glans} cx="0.35" cy="0.3" r="0.8">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.7" />
+          <stop offset="0.35" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.35" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="50" cy="93" rx="28" ry="5" fill="rgba(0,0,0,.18)" />
+      <g stroke={lijn} strokeWidth="2.5" strokeLinejoin="round">
+        <ellipse cx="50" cy="86" rx="29" ry="8" fill={kleur} />
+        <path d="M31 85 C35 70 42 60 43 47 L57 47 C58 60 65 70 69 85 Z" fill={kleur} />
+        <ellipse cx="50" cy="47" rx="15" ry="5" fill={kleur} />
+        <circle cx="50" cy="28" r="15" fill={kleur} />
+      </g>
+      <g fill={`url(#${glans})`}>
+        <ellipse cx="50" cy="86" rx="29" ry="8" />
+        <path d="M31 85 C35 70 42 60 43 47 L57 47 C58 60 65 70 69 85 Z" />
+        <circle cx="50" cy="28" r="15" />
+      </g>
+      <ellipse cx="44" cy="22" rx="4.5" ry="5.5" fill="#fff" opacity="0.75" />
     </svg>
   )
 }
 
 function Pijp() {
+  const buis = 'M22 76 L52 46 Q62 36 72 46 L80 54'
   return (
     <svg viewBox="0 0 100 100" className="tekening" aria-hidden="true">
-      <path d="M18 80 L56 42 Q64 34 72 42 L84 54" stroke="#4d555d" strokeWidth="20" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M18 80 L56 42 Q64 34 72 42 L84 54" stroke="#9aa3ab" strokeWidth="13" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M22 72 L54 40" stroke="#dfe4e8" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="lood" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#d9dee2" />
+          <stop offset="0.45" stopColor="#8d969e" />
+          <stop offset="1" stopColor="#4f575e" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="52" cy="90" rx="32" ry="4" fill="rgba(0,0,0,.15)" />
+      <path d={buis} stroke="#3c4349" strokeWidth="19" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={buis} stroke="url(#lood)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M25 70 L50 45" stroke="#f1f4f6" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.8" />
+      {/* De moffen aan beide uiteinden. */}
+      <g fill="#6b747b" stroke="#3c4349" strokeWidth="2.5">
+        <rect x="12" y="68" width="20" height="16" rx="3" transform="rotate(-45 22 76)" />
+        <rect x="70" y="46" width="20" height="16" rx="3" transform="rotate(45 80 54)" />
+      </g>
     </svg>
   )
 }
 
 function Plaatje({ kaart }) {
-  if (kaart.kleur) return <Pion kleur={kaart.kleur} />
+  if (kaart.kleur) return <Pion id={kaart.id} kleur={kaart.kleur} />
   if (kaart.tekening === 'pijp') return <Pijp />
   return (
     <span className="emoji" aria-hidden="true">
@@ -104,7 +136,7 @@ function Kaart({ kaart, markering, antwoord, onKies }) {
   else if (antwoord && !isAntwoord) klassen.push('is-uitgesloten')
   return (
     <button type="button" className={klassen.join(' ')} onClick={() => onKies(kaart)} aria-label={kaart.naam}>
-      <span className="kaart-beeld">
+      <span className="kaart-beeld" style={tint(kaart)}>
         <Plaatje kaart={kaart} />
       </span>
       <span className="kaart-naam">{kaart.kort}</span>
@@ -118,10 +150,10 @@ function Groep({ groep, spel, onKies }) {
   return (
     <section className={`groep groep-${groep.id}`}>
       <h2>
-        <span className="groep-emoji" aria-hidden="true">
-          {groep.emoji}
+        <span className="label">
+          <span aria-hidden="true">{groep.emoji}</span>
+          {groep.vraag}
         </span>
-        {groep.vraag}
         <span className="nog" aria-label={`nog ${over.length}`}>
           {over.map((k) => (
             <i key={k.id} />
@@ -130,46 +162,33 @@ function Groep({ groep, spel, onKies }) {
       </h2>
       <div className="kaarten">
         {groep.kaarten.map((k) => (
-          <Kaart
-            key={k.id}
-            kaart={k}
-            markering={spel[k.id]}
-            antwoord={antwoord}
-            onKies={onKies}
-          />
+          <Kaart key={k.id} kaart={k} markering={spel[k.id]} antwoord={antwoord} onKies={onKies} />
         ))}
       </div>
     </section>
   )
 }
 
-function Oplossing({ spel }) {
-  const vakjes = GROEPEN.map((g) => ({ groep: g, ...bekijkGroep(g, spel) }))
-  const alles = vakjes.every((v) => v.antwoord)
+// De geheime envelop uit het spel, met een vakje voor wie, waarmee en waar.
+function Envelop({ vakjes, alles }) {
   return (
-    <div className={`oplossing${alles ? ' is-klaar' : ''}`}>
-      {alles && (
-        <div className="hoera" aria-live="polite">
-          🎉 Je weet het!
-        </div>
-      )}
+    <div className={`envelop${alles ? ' is-klaar' : ''}`}>
+      <div className="klep" aria-hidden="true" />
+      <div className="zegel" aria-hidden="true">
+        {alles ? '🎉' : '?'}
+      </div>
       <div className="vakjes">
         {vakjes.map(({ groep, antwoord }) => (
-          <div key={groep.id} className={`vakje${antwoord ? ' is-gevonden' : ''}`}>
+          <div key={groep.id} className={`vakje vakje-${groep.id}${antwoord ? ' is-gevonden' : ''}`}>
             {antwoord ? (
-              <>
-                <span className="vakje-beeld">
-                  <Plaatje kaart={antwoord} />
-                </span>
-                <span className="vakje-naam">{antwoord.kort}</span>
-              </>
+              <span className="vakje-beeld" style={tint(antwoord)}>
+                <Plaatje kaart={antwoord} />
+              </span>
             ) : (
-              <>
-                <span className="vakje-vraag" aria-hidden="true">
-                  ?
-                </span>
-                <span className="vakje-naam">{groep.vraag}</span>
-              </>
+              <span className="vakje-leeg" aria-label={groep.vraag}>
+                <span className="vakje-schim">{groep.emoji}</span>
+                <span className="vakje-vraag">?</span>
+              </span>
             )}
           </div>
         ))}
@@ -179,20 +198,26 @@ function Oplossing({ spel }) {
 }
 
 function Keuze({ kaart, markering, onZet, onSluit }) {
+  const groep = groepVan(kaart)
   return (
     <div className="scherm" onClick={onSluit}>
-      <div className="venster" role="dialog" aria-label={kaart.naam} onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="sluit" onClick={onSluit} aria-label="Sluiten">
+      <div
+        className={`venster venster-${groep.id}`}
+        role="dialog"
+        aria-label={kaart.naam}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="rond sluit" onClick={onSluit} aria-label="Sluiten">
           ✕
         </button>
         <div className="venster-kop">
-          <span className="venster-beeld">
+          <span className="venster-beeld" style={tint(kaart)}>
             <Plaatje kaart={kaart} />
           </span>
-          <div>
+          <div className="venster-titel">
             <div className="venster-naam">{kaart.naam}</div>
-            <button type="button" className="spreek" onClick={() => spreek(kaart.naam)}>
-              🔊 Lees voor
+            <button type="button" className="spreek" onClick={() => spreek(kaart.naam)} aria-label="Lees voor">
+              🔊
             </button>
           </div>
         </div>
@@ -230,7 +255,6 @@ function NieuwSpel({ onJa, onNee }) {
           🧹
         </div>
         <div className="venster-naam">Nieuw spel?</div>
-        <p className="venster-uitleg">Alle tekens worden gewist.</p>
         <div className="ja-nee">
           <button type="button" className="knop-nee" onClick={onNee} aria-label="Nee, verder spelen">
             ✕
@@ -269,8 +293,7 @@ export default function App() {
     if (markering === 'ja') {
       // Er kan maar één dader, wapen en kamer zijn: een oude ster in dezelfde
       // groep verdwijnt.
-      const groep = GROEPEN.find((g) => g.kaarten.includes(kaart))
-      for (const k of groep.kaarten) if (nieuw[k.id] === 'ja') delete nieuw[k.id]
+      for (const k of groepVan(kaart).kaarten) if (nieuw[k.id] === 'ja') delete nieuw[k.id]
     }
     if (markering && spel[kaart.id] !== markering) nieuw[kaart.id] = markering
     else delete nieuw[kaart.id]
@@ -290,22 +313,32 @@ export default function App() {
   }
 
   const leeg = Object.keys(spel).length === 0
+  const vakjes = GROEPEN.map((g) => ({ groep: g, ...bekijkGroep(g, spel) }))
+  const alles = vakjes.every((v) => v.antwoord)
 
   return (
     <div className="app">
       <header className="kop">
-        <h1>
-          <span aria-hidden="true">🔍</span> Speurkaart
-        </h1>
-        <Oplossing spel={spel} />
+        {/* Zodra de envelop vol is, maakt de titel plaats voor een feestje. */}
+        {alles ? (
+          <h1 className="hoera" aria-live="polite">
+            🎉 Je weet het!
+          </h1>
+        ) : (
+          <h1>
+            <span className="loep" aria-hidden="true">
+              🔍
+            </span>
+            Speurkaart
+          </h1>
+        )}
+        <Envelop vakjes={vakjes} alles={alles} />
         <div className="kop-knoppen">
-          <button type="button" className="kop-knop" onClick={terug} disabled={!vorige.length} aria-label="Terug">
-            <span aria-hidden="true">↩️</span>
-            <small>Terug</small>
+          <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
+            ↩︎
           </button>
-          <button type="button" className="kop-knop" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
-            <span aria-hidden="true">🧹</span>
-            <small>Nieuw</small>
+          <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
+            🧹
           </button>
         </div>
       </header>
@@ -319,12 +352,7 @@ export default function App() {
       <footer className="voet">v{APP_VERSION}</footer>
 
       {gekozen && (
-        <Keuze
-          kaart={zoekKaart(gekozen.id)}
-          markering={spel[gekozen.id]}
-          onZet={zet}
-          onSluit={() => setGekozen(null)}
-        />
+        <Keuze kaart={zoekKaart(gekozen.id)} markering={spel[gekozen.id]} onZet={zet} onSluit={() => setGekozen(null)} />
       )}
       {vraagNieuw && <NieuwSpel onJa={nieuwSpel} onNee={() => setVraagNieuw(false)} />}
 
