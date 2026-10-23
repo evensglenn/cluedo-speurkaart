@@ -54,67 +54,11 @@ function tint(kaart) {
   return { '--tint': `color-mix(in srgb, ${kaart.kleur} 32%, #fffaf0)` }
 }
 
-function Pion({ id, kleur }) {
-  const glans = `glans-${id}`
-  const lijn = kleur === '#ffffff' ? '#8a8173' : 'rgba(0,0,0,.5)'
-  return (
-    <svg viewBox="0 0 100 100" className="tekening" aria-hidden="true">
-      <defs>
-        <radialGradient id={glans} cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.7" />
-          <stop offset="0.35" stopColor="#fff" stopOpacity="0" />
-          <stop offset="1" stopColor="#000" stopOpacity="0.35" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="50" cy="93" rx="28" ry="5" fill="rgba(0,0,0,.18)" />
-      <g stroke={lijn} strokeWidth="2.5" strokeLinejoin="round">
-        <ellipse cx="50" cy="86" rx="29" ry="8" fill={kleur} />
-        <path d="M31 85 C35 70 42 60 43 47 L57 47 C58 60 65 70 69 85 Z" fill={kleur} />
-        <ellipse cx="50" cy="47" rx="15" ry="5" fill={kleur} />
-        <circle cx="50" cy="28" r="15" fill={kleur} />
-      </g>
-      <g fill={`url(#${glans})`}>
-        <ellipse cx="50" cy="86" rx="29" ry="8" />
-        <path d="M31 85 C35 70 42 60 43 47 L57 47 C58 60 65 70 69 85 Z" />
-        <circle cx="50" cy="28" r="15" />
-      </g>
-      <ellipse cx="44" cy="22" rx="4.5" ry="5.5" fill="#fff" opacity="0.75" />
-    </svg>
-  )
-}
-
-function Pijp() {
-  const buis = 'M22 76 L52 46 Q62 36 72 46 L80 54'
-  return (
-    <svg viewBox="0 0 100 100" className="tekening" aria-hidden="true">
-      <defs>
-        <linearGradient id="lood" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#d9dee2" />
-          <stop offset="0.45" stopColor="#8d969e" />
-          <stop offset="1" stopColor="#4f575e" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="52" cy="90" rx="32" ry="4" fill="rgba(0,0,0,.15)" />
-      <path d={buis} stroke="#3c4349" strokeWidth="19" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={buis} stroke="url(#lood)" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M25 70 L50 45" stroke="#f1f4f6" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.8" />
-      {/* De moffen aan beide uiteinden. */}
-      <g fill="#6b747b" stroke="#3c4349" strokeWidth="2.5">
-        <rect x="12" y="68" width="20" height="16" rx="3" transform="rotate(-45 22 76)" />
-        <rect x="70" y="46" width="20" height="16" rx="3" transform="rotate(45 80 54)" />
-      </g>
-    </svg>
-  )
-}
-
+// De tekening van het speurblad. Kamers zijn rechthoekige prentjes, de rest
+// staat los op een doorzichtige achtergrond.
 function Plaatje({ kaart }) {
-  if (kaart.kleur) return <Pion id={kaart.id} kleur={kaart.kleur} />
-  if (kaart.tekening === 'pijp') return <Pijp />
-  return (
-    <span className="emoji" aria-hidden="true">
-      {kaart.emoji}
-    </span>
-  )
+  const soort = groepVan(kaart).id === 'waar' ? 'prent' : 'los'
+  return <img className={`plaatje plaatje-${soort}`} src={kaart.plaatje} alt="" draggable="false" />
 }
 
 function Merk({ markering }) {
@@ -152,7 +96,7 @@ function Groep({ groep, spel, onKies }) {
       <h2>
         <span className="label">
           <span aria-hidden="true">{groep.emoji}</span>
-          {groep.vraag}
+          {groep.titel}
         </span>
         <span className="nog" aria-label={`nog ${over.length}`}>
           {over.map((k) => (
@@ -185,7 +129,7 @@ function Envelop({ vakjes, alles }) {
                 <Plaatje kaart={antwoord} />
               </span>
             ) : (
-              <span className="vakje-leeg" aria-label={groep.vraag}>
+              <span className="vakje-leeg" aria-label={groep.titel}>
                 <span className="vakje-schim">{groep.emoji}</span>
                 <span className="vakje-vraag">?</span>
               </span>
@@ -215,7 +159,7 @@ function Keuze({ kaart, markering, onZet, onSluit }) {
             <Plaatje kaart={kaart} />
           </span>
           <div className="venster-titel">
-            <div className="venster-naam">{kaart.naam}</div>
+            <div className="venster-naam">{kaart.kort}</div>
             <button type="button" className="spreek" onClick={() => spreek(kaart.naam)} aria-label="Lees voor">
               🔊
             </button>

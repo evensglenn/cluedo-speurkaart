@@ -1,42 +1,49 @@
-// De kaarten van de klassieke Nederlandstalige Cluedo. Elke kaart heeft een
-// korte naam (onder het plaatje) en een volledige naam (in het keuzevenster,
-// en om voor te lezen). Personages worden getekend als pion in hun kleur;
-// wapens en kamers met een emoji, of een eigen tekening als die er niet is.
+// De kaarten zoals op Runes speurblad (bron/speurblad.png): dezelfde
+// tekeningen, dezelfde woorden en dezelfde groepskleuren, zodat hij ze meteen
+// herkent. De korte naam staat — net als op het blad — in kleine letters
+// onder het plaatje; de volledige naam wordt voorgelezen.
+//
+// De plaatjes zijn uit het blad geknipt met scripts/knip-plaatjes.mjs.
+
+const plaatjes = import.meta.glob('./plaatjes/*.png', { eager: true, import: 'default' })
+const plaatje = (id) => plaatjes[`./plaatjes/${id}.png`]
+
+const kaart = (id, kort, naam, extra = {}) => ({ id, kort, naam, plaatje: plaatje(id), ...extra })
 
 export const PERSONAGES = [
-  { id: 'roodhart', kort: 'Roodhart', naam: 'Mevrouw Roodhart', kleur: '#d62828' },
-  { id: 'van-geelen', kort: 'Van Geelen', naam: 'Kolonel Van Geelen', kleur: '#f2c200' },
-  { id: 'de-wit', kort: 'De Wit', naam: 'Mevrouw De Wit', kleur: '#ffffff' },
-  { id: 'groenewoud', kort: 'Groenewoud', naam: 'Dominee Groenewoud', kleur: '#2a9d4b' },
-  { id: 'blaauw', kort: 'Blaauw', naam: 'Mevrouw Blaauw van Draet', kleur: '#2667c9' },
-  { id: 'pimpel', kort: 'Pimpel', naam: 'Professor Pimpel', kleur: '#7b3fb5' },
+  kaart('roodhart', 'roodhart', 'Mevrouw Roodhart', { kleur: '#d62828' }),
+  kaart('van-geelen', 'van geelen', 'Kolonel Van Geelen', { kleur: '#f2c200' }),
+  kaart('de-wit', 'witte', 'Mevrouw Witte', { kleur: '#ffffff' }),
+  kaart('groenewoud', 'groenewoud', 'Dominee Groenewoud', { kleur: '#2a9d4b' }),
+  kaart('blaauw', 'blaauw van draet', 'Mevrouw Blaauw van Draet', { kleur: '#2667c9' }),
+  kaart('pimpel', 'pimpel', 'Professor Pimpel', { kleur: '#7b3fb5' }),
 ]
 
 export const WAPENS = [
-  { id: 'kandelaar', kort: 'Kandelaar', naam: 'De kandelaar', emoji: '🕯️' },
-  { id: 'mes', kort: 'Mes', naam: 'Het mes', emoji: '🔪' },
-  { id: 'pijp', kort: 'Loden pijp', naam: 'De loden pijp', tekening: 'pijp' },
-  { id: 'pistool', kort: 'Pistool', naam: 'Het pistool', emoji: '🔫' },
-  { id: 'touw', kort: 'Touw', naam: 'Het touw', emoji: '🪢' },
-  { id: 'sleutel', kort: 'Sleutel', naam: 'De Engelse sleutel', emoji: '🔧' },
+  kaart('kandelaar', 'kandelaar', 'De kandelaar'),
+  kaart('mes', 'dolk', 'De dolk'),
+  kaart('touw', 'touw', 'Het touw'),
+  kaart('sleutel', 'moersleutel', 'De moersleutel'),
+  kaart('pistool', 'revolver', 'De revolver'),
+  kaart('pijp', 'loden pijp', 'De loden pijp'),
 ]
 
 export const KAMERS = [
-  { id: 'keuken', kort: 'Keuken', naam: 'De keuken', emoji: '🍳' },
-  { id: 'balzaal', kort: 'Balzaal', naam: 'De balzaal', emoji: '🪩' },
-  { id: 'serre', kort: 'Serre', naam: 'De serre', emoji: '🪴' },
-  { id: 'eetkamer', kort: 'Eetkamer', naam: 'De eetkamer', emoji: '🍽️' },
-  { id: 'biljart', kort: 'Biljart', naam: 'De biljartkamer', emoji: '🎱' },
-  { id: 'bibliotheek', kort: 'Bibliotheek', naam: 'De bibliotheek', emoji: '📚' },
-  { id: 'zitkamer', kort: 'Zitkamer', naam: 'De zitkamer', emoji: '🛋️' },
-  { id: 'hal', kort: 'Hal', naam: 'De hal', emoji: '🚪' },
-  { id: 'werkkamer', kort: 'Werkkamer', naam: 'De werkkamer', emoji: '🖋️' },
+  kaart('muziekkamer', 'muziekkamer', 'De muziekkamer'),
+  kaart('biljart', 'biljartkamer', 'De biljartkamer'),
+  kaart('serre', 'serre', 'De serre'),
+  kaart('eetkamer', 'eetkamer', 'De eetkamer'),
+  kaart('hal', 'hal', 'De hal'),
+  kaart('keuken', 'keuken', 'De keuken'),
+  kaart('bibliotheek', 'bibliotheek', 'De bibliotheek'),
+  kaart('zitkamer', 'zitkamer', 'De zitkamer'),
+  kaart('studeerkamer', 'studeerkamer', 'De studeerkamer'),
 ]
 
 export const GROEPEN = [
-  { id: 'wie', vraag: 'Wie?', emoji: '🕵️', kaarten: PERSONAGES },
-  { id: 'waarmee', vraag: 'Waarmee?', emoji: '🗡️', kaarten: WAPENS },
-  { id: 'waar', vraag: 'Waar?', emoji: '🏠', kaarten: KAMERS },
+  { id: 'wie', titel: 'Daders', emoji: '🕵️', kaarten: PERSONAGES },
+  { id: 'waarmee', titel: 'Voorwerpen', emoji: '🔍', kaarten: WAPENS },
+  { id: 'waar', titel: 'Kamers', emoji: '🏠', kaarten: KAMERS },
 ]
 
 // De volgorde waarin de knoppen in het keuzevenster staan.
