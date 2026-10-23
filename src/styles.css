@@ -899,3 +899,220 @@ button {
     aspect-ratio: 20 / 19;
   }
 }
+
+/* Kamers zijn brede prentjes: in het keuzevenster mag het vak breder. */
+@media (min-width: 640px) {
+  .venster-waar .venster-beeld {
+    width: 206px;
+  }
+}
+
+/* ---------- Spelers en "getoond aan" ---------- */
+
+.dier {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  background: #f1e6cf;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* Kleine dierenkopjes op een eigen kaart: aan wie ze al getoond is. */
+.kijkers {
+  position: absolute;
+  left: 8px;
+  bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: calc(100% - 16px);
+}
+
+.kijkers i {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--papier);
+  box-shadow:
+    0 0 0 2px var(--hand),
+    0 2px 0 rgba(0, 0, 0, 0.25);
+  font-size: 1.15rem;
+  font-style: normal;
+  line-height: 1;
+  animation: plop 0.25s ease-out;
+}
+
+.getoond {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--hand) 10%, var(--papier));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hand) 30%, transparent);
+}
+
+.getoond-titel {
+  margin-bottom: 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.getoond .wis {
+  margin-top: 0;
+}
+
+.speler-knoppen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.speler-knop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 16px 5px 5px;
+  border-radius: 999px;
+  background: var(--papier);
+  box-shadow:
+    0 4px 0 var(--papier-schaduw),
+    inset 0 0 0 2px var(--papier-schaduw);
+  font-size: 1.15rem;
+  font-weight: 600;
+  transition: transform 0.08s;
+}
+
+.speler-knop:active {
+  transform: translateY(3px);
+}
+
+.speler-knop.is-aan {
+  background: var(--hand);
+  color: #fff;
+  box-shadow: 0 4px 0 #1f4c97;
+}
+
+.speler-knop.is-aan .dier {
+  background: var(--papier);
+}
+
+.speler-knop.is-aan::after {
+  content: '✓';
+  margin-left: 2px;
+  font-weight: 700;
+}
+
+.venster-spelers .venster-naam {
+  margin-bottom: 4px;
+}
+
+.venster-uitleg {
+  margin: 0 0 16px;
+  color: var(--stil);
+  font-size: 1.05rem;
+}
+
+.spelers-lijst {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.spelers-lijst li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px 6px 8px;
+  border-radius: 16px;
+  background: #f6ecd8;
+}
+
+.spelers-lijst .speler-naam {
+  flex: 1;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.verwijder {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+}
+
+.nieuwe-speler {
+  padding: 14px;
+  border-radius: 20px;
+  background: #f6ecd8;
+}
+
+.dieren {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dier-knop {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background: var(--papier);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.dier-knop.is-bezet {
+  opacity: 0.3;
+}
+
+.dier-knop.is-aan {
+  box-shadow: 0 0 0 4px var(--hand);
+}
+
+.naam-rij {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.naam-rij input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  border: 2px solid var(--papier-schaduw);
+  border-radius: 14px;
+  background: var(--papier);
+  font: inherit;
+  font-size: 1.2rem;
+  color: var(--inkt);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.naam-rij input:focus {
+  outline: none;
+  border-color: var(--hand);
+}
+
+.toevoegen {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--ja);
+  box-shadow: 0 4px 0 #146b3f;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.toevoegen:disabled {
+  opacity: 0.35;
+}

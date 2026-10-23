@@ -3,24 +3,45 @@ import { version as APP_VERSION } from '../package.json'
 import { GROEPEN, MARKERINGEN } from './kaarten.js'
 
 const OPSLAG = 'cluedo-speurkaart:spel'
+const SPELERS_OPSLAG = 'cluedo-speurkaart:spelers'
 const MAX_TERUG = 100
+
+// Elke medespeler krijgt een dier, zodat een kind ze herkent zonder te lezen.
+const DIEREN = ['🐻', '🦊', '🐼', '🐸', '🦁', '🐰', '🐯', '🐨', '🐵', '🐶', '🐱', '🦄']
 
 const ALLE_KAARTEN = GROEPEN.flatMap((g) => g.kaarten)
 const zoekKaart = (id) => ALLE_KAARTEN.find((k) => k.id === id)
 const groepVan = (kaart) => GROEPEN.find((g) => g.kaarten.includes(kaart))
 
-function laadSpel() {
+// Een spel bestaat uit de markering per kaart (spel) en, per eigen kaart,
+// aan welke spelers ze al getoond is (getoond).
+const LEEG_SPEL = { spel: {}, getoond: {} }
+
+function laad(sleutel) {
   try {
-    const bewaard = JSON.parse(localStorage.getItem(OPSLAG))
-    if (bewaard && typeof bewaard === 'object') return bewaard
-  } catch (e) {}
-  return {}
+    return JSON.parse(localStorage.getItem(sleutel))
+  } catch (e) {
+    return null
+  }
 }
 
-function bewaarSpel(spel) {
+function bewaar(sleutel, waarde) {
   try {
-    localStorage.setItem(OPSLAG, JSON.stringify(spel))
+    localStorage.setItem(sleutel, JSON.stringify(waarde))
   } catch (e) {}
+}
+
+function laadSpel() {
+  const bewaard = laad(OPSLAG)
+  if (!bewaard || typeof bewaard !== 'object') return LEEG_SPEL
+  // Oudere versies bewaarden enkel de markeringen.
+  if (!bewaard.spel) return { spel: bewaard, getoond: {} }
+  return { spel: bewaard.spel, getoond: bewaard.getoond ?? {} }
+}
+
+function laadSpelers() {
+  const bewaard = laad(SPELERS_OPSLAG)
+  return Array.isArray(bewaard) ? bewaard : []
 }
 
 // Leest een naam voor, voor wie (nog) niet alles kan lezen.
@@ -71,7 +92,7 @@ function Merk({ markering }) {
   )
 }
 
-function Kaart({ kaart, markering, antwoord, onKies }) {
+function Kaart({ kaart, markering, antwoord, kijkers, onKies }) {
   const klassen = ['kaart']
   // Zonder ster, maar als enige overgebleven kaart is het toch het antwoord.
   const isAntwoord = antwoord?.id === kaart.id
@@ -85,11 +106,18 @@ function Kaart({ kaart, markering, antwoord, onKies }) {
       </span>
       <span className="kaart-naam">{kaart.kort}</span>
       <Merk markering={markering} />
+      {markering === 'hand' && kijkers.length > 0 && (
+        <span className="kijkers" aria-label={`getoond aan ${kijkers.map((s) => s.naam).join(', ')}`}>
+          {kijkers.map((s) => (
+            <i key={s.id}>{s.dier}</i>
+          ))}
+        </span>
+      )}
     </button>
   )
 }
 
-function Groep({ groep, spel, onKies }) {
+function Groep({ groep, spel, kijkersVan, onKies }) {
   const { over, antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
@@ -106,7 +134,14 @@ function Groep({ groep, spel, onKies }) {
       </h2>
       <div className="kaarten">
         {groep.kaarten.map((k) => (
-          <Kaart key={k.id} kaart={k} markering={spel[k.id]} antwoord={antwoord} onKies={onKies} />
+          <Kaart
+            key={k.id}
+            kaart={k}
+            markering={spel[k.id]}
+            antwoord={antwoord}
+            kijkers={kijkersVan(k)}
+            onKies={onKies}
+          />
         ))}
       </div>
     </section>
@@ -141,7 +176,7 @@ function Envelop({ vakjes, alles }) {
   )
 }
 
-function Keuze({ kaart, markering, onZet, onSluit }) {
+function Keuze({ kaart, markering, spelers, getoondAan, onZet, onToon, onSpelers, onSluit }) {
   const groep = groepVan(kaart)
   return (
     <div className="scherm" onClick={onSluit}>
@@ -181,11 +216,107 @@ function Keuze({ kaart, markering, onZet, onSluit }) {
             </button>
           ))}
         </div>
+        {/* Een eigen kaart kun je tonen: bijhouden aan wie, zodat je die
+            speler later liefst dezelfde kaart toont en niets nieuws verraadt. */}
+        {markering === 'hand' && (
+          <div className="getoond">
+            <div className="getoond-titel">👀 Getoond aan</div>
+            {spelers.length ? (
+              <div className="speler-knoppen">
+                {spelers.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={`speler-knop${getoondAan.includes(s.id) ? ' is-aan' : ''}`}
+                    onClick={() => onToon(kaart, s.id)}
+                    aria-pressed={getoondAan.includes(s.id)}
+                  >
+                    <span className="dier">{s.dier}</span>
+                    <span className="speler-naam">{s.naam}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button type="button" className="wis" onClick={onSpelers}>
+                👥 Spelers toevoegen
+              </button>
+            )}
+          </div>
+        )}
         {markering && (
           <button type="button" className="wis" onClick={() => onZet(kaart, null)}>
             🧽 Leeg maken
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
+  const vrij = DIEREN.filter((d) => !spelers.some((s) => s.dier === d))
+  const [naam, setNaam] = useState('')
+  const [dier, setDier] = useState(vrij[0] ?? DIEREN[0])
+
+  const voegToe = (e) => {
+    e.preventDefault()
+    if (!naam.trim()) return
+    onVoegToe({ id: `${Date.now()}`, naam: naam.trim(), dier })
+    setNaam('')
+    setDier(vrij.find((d) => d !== dier) ?? DIEREN[0])
+  }
+
+  return (
+    <div className="scherm" onClick={onSluit}>
+      <div className="venster venster-spelers" role="dialog" aria-label="Spelers" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="rond sluit" onClick={onSluit} aria-label="Sluiten">
+          ✕
+        </button>
+        <div className="venster-naam">👥 Spelers</div>
+        <p className="venster-uitleg">De anderen aan tafel. Ze blijven bewaard, ook bij een nieuw spel.</p>
+        {spelers.length > 0 && (
+          <ul className="spelers-lijst">
+            {spelers.map((s) => (
+              <li key={s.id}>
+                <span className="dier">{s.dier}</span>
+                <span className="speler-naam">{s.naam}</span>
+                <button type="button" className="verwijder" onClick={() => onVerwijder(s.id)} aria-label={`${s.naam} verwijderen`}>
+                  🗑️
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <form className="nieuwe-speler" onSubmit={voegToe}>
+          <div className="dieren" role="radiogroup" aria-label="Dier">
+            {DIEREN.map((d) => (
+              <button
+                key={d}
+                type="button"
+                role="radio"
+                aria-checked={d === dier}
+                className={`dier-knop${d === dier ? ' is-aan' : ''}${vrij.includes(d) ? '' : ' is-bezet'}`}
+                onClick={() => setDier(d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <div className="naam-rij">
+            <span className="dier">{dier}</span>
+            <input
+              type="text"
+              value={naam}
+              onChange={(e) => setNaam(e.target.value)}
+              placeholder="Naam, bv. papa"
+              maxLength={14}
+              enterKeyHint="done"
+            />
+            <button type="submit" className="toevoegen" disabled={!naam.trim()}>
+              ＋
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -213,13 +344,17 @@ function NieuwSpel({ onJa, onNee }) {
 }
 
 export default function App() {
-  const [spel, setSpel] = useState(laadSpel)
+  const [staat, setStaat] = useState(laadSpel)
+  const [spelers, setSpelers] = useState(laadSpelers)
   const [vorige, setVorige] = useState([])
   const [gekozen, setGekozen] = useState(null)
   const [vraagNieuw, setVraagNieuw] = useState(false)
+  const [toonSpelers, setToonSpelers] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
+  const { spel, getoond } = staat
 
-  useEffect(() => bewaarSpel(spel), [spel])
+  useEffect(() => bewaar(OPSLAG, staat), [staat])
+  useEffect(() => bewaar(SPELERS_OPSLAG, spelers), [spelers])
 
   useEffect(() => {
     const onUpdate = () => setUpdateAvailable(true)
@@ -228,9 +363,11 @@ export default function App() {
   }, [])
 
   const wijzig = (nieuw) => {
-    setVorige((v) => [...v, spel].slice(-MAX_TERUG))
-    setSpel(nieuw)
+    setVorige((v) => [...v, staat].slice(-MAX_TERUG))
+    setStaat(nieuw)
   }
+
+  const kijkersVan = (kaart) => spelers.filter((s) => getoond[kaart.id]?.includes(s.id))
 
   const zet = (kaart, markering) => {
     const nieuw = { ...spel }
@@ -241,22 +378,30 @@ export default function App() {
     }
     if (markering && spel[kaart.id] !== markering) nieuw[kaart.id] = markering
     else delete nieuw[kaart.id]
-    wijzig(nieuw)
-    setGekozen(null)
+    wijzig({ spel: nieuw, getoond })
+    // Bij een eigen kaart blijft het venster open, om aan te duiden aan wie
+    // ze getoond is.
+    if (nieuw[kaart.id] !== 'hand') setGekozen(null)
+  }
+
+  const toon = (kaart, spelerId) => {
+    const nu = getoond[kaart.id] ?? []
+    const anders = nu.includes(spelerId) ? nu.filter((id) => id !== spelerId) : [...nu, spelerId]
+    wijzig({ spel, getoond: { ...getoond, [kaart.id]: anders } })
   }
 
   const terug = () => {
     if (!vorige.length) return
-    setSpel(vorige[vorige.length - 1])
+    setStaat(vorige[vorige.length - 1])
     setVorige((v) => v.slice(0, -1))
   }
 
   const nieuwSpel = () => {
-    wijzig({})
+    wijzig(LEEG_SPEL)
     setVraagNieuw(false)
   }
 
-  const leeg = Object.keys(spel).length === 0
+  const leeg = Object.keys(spel).length === 0 && Object.keys(getoond).length === 0
   const vakjes = GROEPEN.map((g) => ({ groep: g, ...bekijkGroep(g, spel) }))
   const alles = vakjes.every((v) => v.antwoord)
 
@@ -281,6 +426,9 @@ export default function App() {
           <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
             ↩︎
           </button>
+          <button type="button" className="rond" onClick={() => setToonSpelers(true)} aria-label="Spelers">
+            👥
+          </button>
           <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
             🧹
           </button>
@@ -289,14 +437,31 @@ export default function App() {
 
       <main className="groepen">
         {GROEPEN.map((g) => (
-          <Groep key={g.id} groep={g} spel={spel} onKies={setGekozen} />
+          <Groep key={g.id} groep={g} spel={spel} kijkersVan={kijkersVan} onKies={setGekozen} />
         ))}
       </main>
 
       <footer className="voet">v{APP_VERSION}</footer>
 
       {gekozen && (
-        <Keuze kaart={zoekKaart(gekozen.id)} markering={spel[gekozen.id]} onZet={zet} onSluit={() => setGekozen(null)} />
+        <Keuze
+          kaart={zoekKaart(gekozen.id)}
+          markering={spel[gekozen.id]}
+          spelers={spelers}
+          getoondAan={getoond[gekozen.id] ?? []}
+          onZet={zet}
+          onToon={toon}
+          onSpelers={() => setToonSpelers(true)}
+          onSluit={() => setGekozen(null)}
+        />
+      )}
+      {toonSpelers && (
+        <Spelers
+          spelers={spelers}
+          onVoegToe={(s) => setSpelers((lijst) => [...lijst, s])}
+          onVerwijder={(id) => setSpelers((lijst) => lijst.filter((s) => s.id !== id))}
+          onSluit={() => setToonSpelers(false)}
+        />
       )}
       {vraagNieuw && <NieuwSpel onJa={nieuwSpel} onNee={() => setVraagNieuw(false)} />}
 

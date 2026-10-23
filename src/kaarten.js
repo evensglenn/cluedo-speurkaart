@@ -1,5 +1,5 @@
-// De kaarten zoals op Runes speurblad (bron/speurblad.png): dezelfde
-// tekeningen, dezelfde woorden en dezelfde groepskleuren, zodat hij ze meteen
+// De kaarten zoals op het speurblad (bron/speurblad.png): dezelfde
+// tekeningen, dezelfde woorden en dezelfde groepskleuren, zodat een kind ze meteen
 // herkent. De korte naam staat — net als op het blad — in kleine letters
 // onder het plaatje; de volledige naam wordt voorgelezen.
 //
