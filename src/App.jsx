@@ -148,34 +148,6 @@ function Groep({ groep, spel, kijkersVan, onKies }) {
   )
 }
 
-// De geheime envelop uit het spel, met een vakje voor wie, waarmee en waar.
-function Envelop({ vakjes, alles }) {
-  return (
-    <div className={`envelop${alles ? ' is-klaar' : ''}`}>
-      <div className="klep" aria-hidden="true" />
-      <div className="zegel" aria-hidden="true">
-        {alles ? '🎉' : '?'}
-      </div>
-      <div className="vakjes">
-        {vakjes.map(({ groep, antwoord }) => (
-          <div key={groep.id} className={`vakje vakje-${groep.id}${antwoord ? ' is-gevonden' : ''}`}>
-            {antwoord ? (
-              <span className="vakje-beeld" style={tint(antwoord)}>
-                <Plaatje kaart={antwoord} />
-              </span>
-            ) : (
-              <span className="vakje-leeg" aria-label={groep.titel}>
-                <span className="vakje-schim">{groep.emoji}</span>
-                <span className="vakje-vraag">?</span>
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function Keuze({ kaart, markering, spelers, getoondAan, onZet, onToon, onSpelers, onSluit }) {
   const groep = groepVan(kaart)
   return (
@@ -402,13 +374,13 @@ export default function App() {
   }
 
   const leeg = Object.keys(spel).length === 0 && Object.keys(getoond).length === 0
-  const vakjes = GROEPEN.map((g) => ({ groep: g, ...bekijkGroep(g, spel) }))
-  const alles = vakjes.every((v) => v.antwoord)
+  const alles = GROEPEN.every((g) => bekijkGroep(g, spel).antwoord)
 
   return (
     <div className="app">
       <header className="kop">
-        {/* Zodra de envelop vol is, maakt de titel plaats voor een feestje. */}
+        {/* Zodra dader, voorwerp en kamer gekend zijn, maakt de titel plaats
+            voor een feestje. */}
         {alles ? (
           <h1 className="hoera" aria-live="polite">
             🎉 Je weet het!
@@ -421,7 +393,6 @@ export default function App() {
             Speurkaart
           </h1>
         )}
-        <Envelop vakjes={vakjes} alles={alles} />
         <div className="kop-knoppen">
           <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
             ↩︎

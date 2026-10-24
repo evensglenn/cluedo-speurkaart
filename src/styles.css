@@ -67,7 +67,7 @@ button {
 
 .kop {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 16px;
 }
@@ -133,118 +133,6 @@ button {
   color: var(--papier);
   opacity: 0.45;
   cursor: default;
-}
-
-/* ---------- De envelop ---------- */
-
-.envelop {
-  position: relative;
-  padding: 44px 14px 12px;
-  border-radius: 12px;
-  background: linear-gradient(165deg, #edd5a1, #d3ad69);
-  box-shadow:
-    0 5px 0 #a3803f,
-    0 14px 26px rgba(0, 0, 0, 0.45);
-  transition: box-shadow 0.4s;
-}
-
-.klep {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 32px;
-  border-radius: 12px 12px 0 0;
-  background: linear-gradient(#dcb97a, #c49a55);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-
-.zegel {
-  position: absolute;
-  left: 50%;
-  top: 30px;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #e25555, #8e1717 75%);
-  box-shadow:
-    0 2px 0 #5b0d0d,
-    0 0 0 3px rgba(142, 23, 23, 0.35);
-  color: #ffd9a8;
-  font-size: 1.3rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.vakjes {
-  display: flex;
-  gap: 10px;
-}
-
-.vakje {
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
-  background: #fbf1dc;
-  box-shadow:
-    inset 0 3px 6px rgba(80, 55, 20, 0.35),
-    0 1px 0 rgba(255, 255, 255, 0.5);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-}
-
-.vakje-leeg {
-  position: relative;
-  display: grid;
-  place-items: center;
-}
-
-.vakje-schim {
-  font-size: 2.6rem;
-  filter: grayscale(1);
-  opacity: 0.18;
-}
-
-.vakje-vraag {
-  position: absolute;
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: #b58e4e;
-}
-
-.vakje-beeld {
-  --tint: #f6e3d6;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  padding: 6px;
-  background: var(--tint);
-  animation: plop 0.4s ease-out;
-}
-
-.vakje-waarmee .vakje-beeld {
-  --tint: #e1e9f7;
-}
-
-.vakje.is-gevonden {
-  box-shadow: 0 0 0 3px var(--ja);
-}
-
-.envelop.is-klaar {
-  box-shadow:
-    0 5px 0 #a3803f,
-    0 0 0 5px var(--goud),
-    0 0 40px 6px rgba(255, 207, 74, 0.75);
-  animation: wiebel 0.9s ease-in-out 2;
-}
-
-.envelop.is-klaar .zegel {
-  background: var(--goud);
-  box-shadow: 0 2px 0 #b88c14;
 }
 
 .kop h1.hoera {
@@ -426,8 +314,7 @@ button {
 }
 
 .groep-waar .kaart-beeld,
-.venster-waar .venster-beeld,
-.vakje-waar .vakje-beeld {
+.venster-waar .venster-beeld {
   padding: 0;
 }
 
@@ -435,13 +322,11 @@ button {
   padding: 5% 4%;
 }
 
-/* In de envelop en het keuzevenster heeft het vak een vaste maat: het
-   plaatje vult dat vak, min de binnenrand. */
-.vakje-beeld,
+/* In het keuzevenster heeft het vak een vaste maat: het plaatje vult dat
+   vak, min de binnenrand. */
 .venster-beeld {
   position: relative;
 }
-.vakje-beeld .plaatje,
 .venster-beeld .plaatje {
   position: absolute;
   inset: 0;
@@ -844,16 +729,8 @@ button {
 
 /* ---------- Schermgroottes ---------- */
 
-/* Smal (telefoon): de envelop op een eigen regel. */
+/* Smal (telefoon). */
 @media (max-width: 639px) {
-  .kop {
-    grid-template-columns: 1fr auto;
-  }
-  .envelop {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: center;
-  }
   .keuzes {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
