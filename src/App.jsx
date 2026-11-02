@@ -100,7 +100,14 @@ function Kaart({ kaart, markering, antwoord, kijkers, onKies }) {
   if (markering) klassen.push(`is-${markering}`)
   else if (antwoord && !isAntwoord) klassen.push('is-uitgesloten')
   return (
-    <button type="button" className={klassen.join(' ')} onClick={() => onKies(kaart)} aria-label={kaart.naam}>
+    <button
+      type="button"
+      className={klassen.join(' ')}
+      // Op de plattegrond heeft elke kamer haar vaste plaats.
+      style={groepVan(kaart).id === 'waar' ? { gridArea: kaart.id } : undefined}
+      onClick={() => onKies(kaart)}
+      aria-label={kaart.naam}
+    >
       <span className="kaart-beeld" style={tint(kaart)}>
         <Plaatje kaart={kaart} />
       </span>
@@ -117,7 +124,34 @@ function Kaart({ kaart, markering, antwoord, kijkers, onKies }) {
   )
 }
 
-function Groep({ groep, spel, kijkersVan, onKies }) {
+// Elke groep heeft een eigen plek uit de speurderswereld: de daders staan in
+// een line-up, de voorwerpen hangen aan bewijslabels en de kamers liggen op
+// de plattegrond van het bord, met in het midden het logo.
+const PLEK = { wie: 'lineup', waarmee: 'labels', waar: 'plattegrond' }
+
+function Midden({ alles }) {
+  return (
+    <div className={`midden${alles ? ' is-klaar' : ''}`} style={{ gridArea: 'midden' }} aria-live="polite">
+      {alles ? (
+        <>
+          <span className="midden-teken" aria-hidden="true">
+            🎉
+          </span>
+          <span className="midden-woord">Je weet het!</span>
+        </>
+      ) : (
+        <>
+          <span className="midden-teken" aria-hidden="true">
+            🔍
+          </span>
+          <span className="midden-woord">Speurkaart</span>
+        </>
+      )}
+    </div>
+  )
+}
+
+function Groep({ groep, spel, alles, kijkersVan, onKies }) {
   const { over, antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
@@ -132,7 +166,8 @@ function Groep({ groep, spel, kijkersVan, onKies }) {
           ))}
         </span>
       </h2>
-      <div className="kaarten">
+      <div className={`kaarten ${PLEK[groep.id]}`}>
+        {groep.id === 'waar' && <Midden alles={alles} />}
         {groep.kaarten.map((k) => (
           <Kaart
             key={k.id}
@@ -378,39 +413,22 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="kop">
-        {/* Zodra dader, voorwerp en kamer gekend zijn, maakt de titel plaats
-            voor een feestje. */}
-        {alles ? (
-          <h1 className="hoera" aria-live="polite">
-            🎉 Je weet het!
-          </h1>
-        ) : (
-          <h1>
-            <span className="loep" aria-hidden="true">
-              🔍
-            </span>
-            Speurkaart
-          </h1>
-        )}
-        <div className="kop-knoppen">
-          <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
-            ↩︎
-          </button>
-          <button type="button" className="rond" onClick={() => setToonSpelers(true)} aria-label="Spelers">
-            👥
-          </button>
-          <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
-            🧹
-          </button>
-        </div>
-      </header>
+      <h1 className="verborgen">Speurkaart</h1>
+      <nav className="knoppen">
+        <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
+          ↩︎
+        </button>
+        <button type="button" className="rond" onClick={() => setToonSpelers(true)} aria-label="Spelers">
+          👥
+        </button>
+        <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
+          🧹
+        </button>
+      </nav>
 
-      <main className="groepen">
-        {GROEPEN.map((g) => (
-          <Groep key={g.id} groep={g} spel={spel} kijkersVan={kijkersVan} onKies={setGekozen} />
-        ))}
-      </main>
+      {GROEPEN.map((g) => (
+        <Groep key={g.id} groep={g} spel={spel} alles={alles} kijkersVan={kijkersVan} onKies={setGekozen} />
+      ))}
 
       <footer className="voet">v{APP_VERSION}</footer>
 

@@ -1,10 +1,20 @@
 :root {
-  --vilt: #1f4a39;
-  --vilt-donker: #102a1f;
-  --papier: #fff8ea;
+  /* Het herenhuis: donker behang, houten muren, gele gangen zoals op het
+     bord, kartonnen bewijslabels en een grijze line-upmuur. */
+  --behang: #2b1828;
+  --behang-motief: #3a2236;
+  --hout: #3a2618;
+  --gang: #e9c35a;
+  --gang-lijn: #cfa23e;
+  --karton: #efd29b;
+  --karton-donker: #b98f4c;
+  --touw: #7a4e26;
+  --muur: #e8e5de;
+  --streep: #bfb9ad;
+  --papier: #fffaf0;
   --papier-schaduw: #cdbb93;
-  --inkt: #2b2118;
-  --stil: #8a7a62;
+  --inkt: #22181f;
+  --stil: #8a7a72;
 
   /* Elke groep heeft dezelfde kleur als op het speurblad. */
   --wie: #c8232c;
@@ -18,7 +28,9 @@
   --goud: #ffcf4a;
 
   color-scheme: light;
-  font-family: 'Fredoka', 'Baloo 2', system-ui, sans-serif;
+  /* Andika is ontworpen voor kinderen die leren lezen: een a en g zoals ze
+     die op school schrijven, en letters die niet op elkaar lijken. */
+  font-family: 'Andika', system-ui, sans-serif;
   color: var(--inkt);
 }
 
@@ -30,18 +42,19 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background-color: var(--vilt-donker);
+  background-color: var(--behang);
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
 
-/* Groen vilt van de speeltafel: een zachte lichtvlek en wat korrel. */
+/* Behang met vierpasjes, en wat donkerder naar de randen. */
 body {
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 90% 70% at 50% 35%, #2c6550 0%, var(--vilt) 45%, var(--vilt-donker) 100%);
+    radial-gradient(ellipse 85% 75% at 50% 40%, transparent 40%, rgba(10, 4, 10, 0.55) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cg fill='%233a2236'%3E%3Ccircle cx='28' cy='19' r='6.5'/%3E%3Ccircle cx='28' cy='37' r='6.5'/%3E%3Ccircle cx='19' cy='28' r='6.5'/%3E%3Ccircle cx='37' cy='28' r='6.5'/%3E%3C/g%3E%3Ccircle cx='28' cy='28' r='3' fill='%23503049'/%3E%3Cg fill='%23352033'%3E%3Ccircle cx='0' cy='0' r='3'/%3E%3Ccircle cx='56' cy='0' r='3'/%3E%3Ccircle cx='0' cy='56' r='3'/%3E%3Ccircle cx='56' cy='56' r='3'/%3E%3C/g%3E%3C/svg%3E"),
+    var(--behang);
   background-attachment: fixed;
 }
 
@@ -54,53 +67,106 @@ button {
   touch-action: manipulation;
 }
 
+button:focus-visible {
+  outline: 4px solid var(--goud);
+  outline-offset: 3px;
+}
+
+.verborgen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Indeling ---------- */
+
 .app {
   min-height: 100dvh;
+  display: grid;
+  gap: 18px 20px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    'wie knoppen'
+    'waarmee waarmee'
+    'waar waar'
+    'voet voet';
+  padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+    max(6px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+
+.groep-wie {
+  grid-area: wie;
+  --accent: var(--wie);
+  --tint: #f6e3d6;
+}
+.groep-waarmee {
+  grid-area: waarmee;
+  --accent: var(--waarmee);
+  --tint: #e1e9f7;
+}
+.groep-waar {
+  grid-area: waar;
+  --accent: var(--waar);
+  --tint: #d6eadb;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
-    max(8px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
 }
 
-/* ---------- Kop ---------- */
-
-.kop {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 16px;
+.knoppen {
+  grid-area: knoppen;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 46px;
 }
 
-.kop h1 {
+.voet {
+  grid-area: voet;
+}
+
+.groep h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0;
-  font-size: 1.9rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--papier);
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-}
-
-.loep {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: var(--goud);
-  box-shadow: 0 4px 0 #b88c14;
-  font-size: 1.8rem;
-  text-shadow: none;
-}
-
-.kop-knoppen {
-  display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
 }
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 8px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.35),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Eén bolletje per kaart die het nog kan zijn. */
+.nog {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.nog i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--papier);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Knoppen ---------- */
 
 .rond {
   display: grid;
@@ -111,7 +177,7 @@ button {
   background: var(--papier);
   box-shadow:
     0 5px 0 var(--papier-schaduw),
-    0 8px 14px rgba(0, 0, 0, 0.3);
+    0 8px 14px rgba(0, 0, 0, 0.35);
   font-size: 1.9rem;
   font-weight: 700;
   line-height: 1;
@@ -128,27 +194,308 @@ button {
 }
 
 .rond:disabled {
-  background: rgba(255, 248, 234, 0.08);
-  box-shadow: inset 0 0 0 2px rgba(255, 248, 234, 0.2);
+  background: rgba(255, 250, 240, 0.08);
+  box-shadow: inset 0 0 0 2px rgba(255, 250, 240, 0.22);
   color: var(--papier);
   opacity: 0.45;
   cursor: default;
 }
 
-.kop h1.hoera {
-  justify-self: start;
-  padding: 6px 22px 9px;
-  border-radius: 999px;
-  background: var(--goud);
+/* ---------- Gemeenschappelijk voor alle kaarten ---------- */
+
+.kaart {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  transition:
+    transform 0.1s,
+    opacity 0.25s,
+    filter 0.25s;
+}
+
+.kaart:active {
+  transform: translateY(3px);
+}
+
+.kaart-beeld {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* Losse tekeningen passen in het vak; kamerprentjes vullen het helemaal. */
+.plaatje {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  -webkit-user-drag: none;
+}
+
+/* Het plaatje vult het vak precies, wat de maat van de tekening ook is. */
+.kaart-beeld > .plaatje {
+  position: absolute;
+  inset: 0;
+}
+
+.plaatje-los {
+  object-fit: contain;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.2));
+}
+
+.plaatje-prent {
+  object-fit: cover;
+}
+
+.kaart-naam {
+  font-size: clamp(1rem, 2.1vmin, 1.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* ---------- Daders: de line-up ---------- */
+
+/* Een muur met lengtestrepen; elk personage houdt een naambordje vast. De
+   kleur van het bordje toont wat er aangeduid is. */
+.lineup {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  height: var(--lineup-hoogte, clamp(200px, 21vh, 250px));
+  padding: 8px 4px 0;
+  border-radius: 8px;
+  background-color: var(--muur);
+  background-image:
+    linear-gradient(to top, #6f685d 0 12px, transparent 12px),
+    repeating-linear-gradient(to top, transparent 0 calc(25% - 3px), #9a9385 calc(25% - 3px) 25%),
+    repeating-linear-gradient(to top, transparent 0 calc(6.25% - 1.5px), var(--streep) calc(6.25% - 1.5px) 6.25%);
   box-shadow:
-    0 5px 0 #b88c14,
-    0 0 30px rgba(255, 207, 74, 0.6);
+    inset 0 0 0 4px var(--hout),
+    0 10px 24px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.lineup .kaart {
+  justify-content: flex-end;
+  padding: 0 4px 16px;
+}
+
+.lineup .kaart-beeld {
+  margin-top: 4px;
+}
+
+.lineup .plaatje-los {
+  object-position: 50% 100%;
+}
+
+.lineup .kaart-naam {
+  position: relative;
+  max-width: 100%;
+  margin-top: -6px;
+  padding: 3px 6px 4px;
+  font-size: clamp(0.9rem, 1.9vmin, 1.15rem);
+  border-radius: 4px;
+  background: var(--papier);
+  box-shadow:
+    inset 0 0 0 3px var(--inkt),
+    0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Spotlicht op de dader. */
+.lineup .kaart.is-ja::before {
+  content: '';
+  position: absolute;
+  inset: -8px -6px 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 55% 40% at 50% 92%, rgba(255, 214, 90, 0.85), transparent 70%),
+    linear-gradient(to bottom, rgba(255, 236, 160, 0.75), rgba(255, 220, 110, 0.25));
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+}
+
+/* ---------- Voorwerpen: bewijslabels ---------- */
+
+.labels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 16px;
+}
+
+.labels .kaart {
+  --label: var(--karton);
+  aspect-ratio: 3 / 4;
+  padding: 30px 8px 10px;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3)) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
+}
+
+/* Het label zelf, met afgeknipte hoeken bovenaan. */
+.labels .kaart::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--label);
+  clip-path: polygon(24% 0, 76% 0, 100% 16%, 100% 100%, 0 100%, 0 16%);
+  transition: background 0.2s;
+}
+
+/* Het gaatje met het touwtje erdoor. */
+.labels .kaart::after {
+  content: '';
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 18px;
+  height: 36px;
+  translate: -50% 0;
+  background:
+    linear-gradient(to right, transparent 8px, var(--touw) 8px 10px, transparent 10px) top / 100% 22px no-repeat,
+    radial-gradient(circle at 50% 27px, var(--behang) 0 4px, var(--karton-donker) 4px 7px, transparent 7.5px);
+}
+
+.labels .kaart-naam {
+  padding-top: 6px;
+}
+
+.labels .kaart.is-hand {
+  --label: #cfe0fb;
+}
+.labels .kaart.is-misschien {
+  --label: #ffd59a;
+}
+.labels .kaart.is-ja {
+  --label: #c3ecd0;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3)) drop-shadow(0 0 18px rgba(255, 207, 74, 0.9));
+}
+.labels .kaart.is-nee {
+  --label: #cdc4b3;
+}
+
+/* ---------- Kamers: de plattegrond van het bord ---------- */
+
+/* De kamers liggen zoals op het Cluedo-bord, met de gele gangvakjes ertussen
+   en het logo in het midden. */
+.plattegrond {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-template-areas:
+    'keuken muziekkamer serre'
+    'eetkamer midden biljart'
+    'eetkamer midden bibliotheek'
+    'zitkamer hal studeerkamer';
+  gap: 16px;
+  min-height: 420px;
+  padding: 16px;
+  border-radius: 6px;
+  background-color: var(--gang);
+  background-image:
+    linear-gradient(var(--gang-lijn) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--gang-lijn) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  background-position: 8px 8px;
+  box-shadow:
+    0 0 0 6px var(--hout),
+    0 14px 30px rgba(0, 0, 0, 0.5);
+}
+
+.plattegrond .kaart {
+  --muren: var(--hout);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--hout);
+  box-shadow: 0 0 0 5px var(--muren);
+}
+
+.plattegrond .kaart-beeld {
+  position: absolute;
+  inset: 0;
+}
+
+.plattegrond .plaatje {
+  transition: filter 0.3s;
+}
+
+/* Het naambordje op de deur. */
+.plattegrond .kaart-naam {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 3px 12px 5px 8px;
+  border-radius: 0 10px 0 0;
+  background: var(--papier);
+  box-shadow: inset 0 0 0 0 transparent;
+}
+
+/* Licht uit: deze kamer is het niet. */
+.plattegrond .kaart.is-nee .plaatje,
+.plattegrond .kaart.is-uitgesloten .plaatje {
+  filter: brightness(0.32) saturate(0.4);
+}
+.plattegrond .kaart.is-uitgesloten {
+  opacity: 1;
+  filter: none;
+}
+
+.plattegrond .kaart.is-hand {
+  --muren: var(--hand);
+}
+.plattegrond .kaart.is-misschien {
+  --muren: var(--misschien);
+}
+.plattegrond .kaart.is-ja {
+  --muren: var(--goud);
+  box-shadow:
+    0 0 0 5px var(--goud),
+    0 0 28px 6px rgba(255, 207, 74, 0.85);
+}
+
+.midden {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 40%, #7a2a3a, #4a1424 75%);
+  box-shadow: 0 0 0 5px var(--hout);
+  color: var(--goud);
+  text-align: center;
+}
+
+.midden-teken {
+  font-size: clamp(2.6rem, 7vmin, 4rem);
+  line-height: 1;
+}
+
+.midden-woord {
+  font-family: 'Grandstander', 'Andika', sans-serif;
+  font-size: clamp(1.4rem, 3.4vmin, 2.2rem);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.midden.is-klaar {
+  background: var(--goud);
   color: var(--inkt);
+  box-shadow:
+    0 0 0 5px var(--hout),
+    0 0 40px 10px rgba(255, 207, 74, 0.8);
+  animation: wiebel 0.9s ease-in-out 2;
+}
+
+.midden.is-klaar .midden-woord {
   text-shadow: none;
-  white-space: nowrap;
-  animation:
-    plop 0.4s ease-out,
-    wiebel 0.9s ease-in-out 0.4s 2;
 }
 
 @keyframes plop {
@@ -178,184 +525,21 @@ button {
   }
 }
 
-/* ---------- Groepen ---------- */
-
-.groepen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.groep-wie {
-  --accent: var(--wie);
-  --tint: #f6e3d6;
-}
-.groep-waarmee {
-  --accent: var(--waarmee);
-  --tint: #e1e9f7;
-}
-.groep-waar {
-  --accent: var(--waar);
-  --tint: #d6eadb;
-}
-
-.groep h2 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 10px;
-  font-size: 1.4rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px 7px 10px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--papier);
-  box-shadow:
-    0 3px 0 rgba(0, 0, 0, 0.3),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.18);
-}
-
-/* Eén bolletje per kaart die het nog kan zijn. */
-.nog {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.nog i {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--papier);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
-}
-
-.kaarten {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* ---------- Kaarten ---------- */
-
-.kaart {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 7px 7px 3px;
-  border-radius: 16px;
-  background: var(--papier);
-  box-shadow:
-    0 5px 0 var(--papier-schaduw),
-    0 10px 18px rgba(0, 0, 0, 0.35);
-  transition:
-    transform 0.1s,
-    box-shadow 0.1s,
-    opacity 0.25s,
-    filter 0.25s;
-}
-
-/* Dubbele rand zoals op een speelkaart. */
-.kaart::before {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 13px;
-  border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  pointer-events: none;
-}
-
-.kaart:active {
-  transform: translateY(4px);
-  box-shadow:
-    0 1px 0 var(--papier-schaduw),
-    0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.kaart-beeld {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  display: grid;
-  place-items: center;
-  padding: 8% 10%;
-  border-radius: 10px;
-  background: radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.85) 0 20%, var(--tint) 72%);
-  overflow: hidden;
-}
-
-/* Losse tekeningen passen in het vak; kamerprentjes vullen het helemaal. */
-.plaatje {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  -webkit-user-drag: none;
-}
-
-.plaatje-los {
-  object-fit: contain;
-  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.18));
-}
-
-.plaatje-prent {
-  object-fit: cover;
-}
-
-.groep-waar .kaart-beeld,
-.venster-waar .venster-beeld {
-  padding: 0;
-}
-
-.groep-wie .kaart-beeld {
-  padding: 5% 4%;
-}
-
-/* In het keuzevenster heeft het vak een vaste maat: het plaatje vult dat
-   vak, min de binnenrand. */
-.venster-beeld {
-  position: relative;
-}
-.venster-beeld .plaatje {
-  position: absolute;
-  inset: 0;
-  padding: inherit;
-}
-
-.kaart-naam {
-  padding: 5px 2px 3px;
-  font-size: clamp(0.95rem, 2vmin, 1.15rem);
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: center;
-}
-
 /* ---------- Markeringen ---------- */
 
 .merk {
   position: absolute;
-  top: -10px;
-  right: -10px;
-  z-index: 1;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 3px solid var(--papier);
   color: #fff;
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1;
   rotate: -10deg;
@@ -363,35 +547,52 @@ button {
   animation: plop 0.25s ease-out;
 }
 
+.labels .merk {
+  top: 10px;
+  right: -8px;
+}
+
 .merk-hand {
   background: var(--hand);
-  font-size: 1.5rem;
+  font-size: 1.45rem;
 }
 .merk-misschien {
   background: var(--misschien);
 }
 .merk-ja {
   background: var(--ja);
-  font-size: 1.6rem;
+  font-size: 1.55rem;
 }
 
 /* "Niet": een grote rode stempel over het plaatje. */
 .merk-nee {
-  top: 41%;
+  top: 44%;
   left: 50%;
   right: auto;
-  width: 66%;
+  width: min(72%, 120px);
   height: auto;
   aspect-ratio: 1;
   translate: -50% -50%;
   rotate: -14deg;
   border: 6px solid var(--nee);
-  background: rgba(255, 248, 234, 0.55);
-  box-shadow: inset 0 0 0 3px rgba(255, 248, 234, 0.6);
+  background: rgba(255, 250, 240, 0.6);
+  box-shadow: inset 0 0 0 3px rgba(255, 250, 240, 0.6);
   color: var(--nee);
-  font-size: clamp(3rem, 8vmin, 4.6rem);
-  font-weight: 700;
+  font-size: clamp(2.8rem, 7vmin, 4.4rem);
   animation: stempel 0.22s ease-out;
+}
+
+.labels .merk-nee {
+  top: 50%;
+  right: auto;
+}
+
+.plattegrond .merk-nee {
+  top: 50%;
+  width: auto;
+  height: min(78%, 110px);
+  border-width: 5px;
+  font-size: clamp(2.2rem, 5vmin, 3.4rem);
 }
 
 @keyframes stempel {
@@ -405,53 +606,42 @@ button {
   }
 }
 
-.kaart.is-hand {
-  box-shadow:
-    0 0 0 4px var(--hand),
-    0 5px 0 4px #1f4c97,
-    0 10px 18px 4px rgba(0, 0, 0, 0.35);
+/* Het bordje, label of de muren krijgen de kleur van de markering. */
+.lineup .kaart.is-hand .kaart-naam,
+.plattegrond .kaart.is-hand .kaart-naam {
+  background: var(--hand);
+  color: #fff;
 }
-.kaart.is-hand .kaart-beeld > * {
-  opacity: 0.55;
-  filter: saturate(0.6);
+.lineup .kaart.is-misschien .kaart-naam,
+.plattegrond .kaart.is-misschien .kaart-naam {
+  background: var(--misschien);
+  color: #fff;
+}
+.lineup .kaart.is-ja .kaart-naam,
+.plattegrond .kaart.is-ja .kaart-naam {
+  background: var(--ja);
+  color: #fff;
 }
 
-.kaart.is-nee {
-  background: #ddd3c0;
-  box-shadow:
-    0 3px 0 #a99c80,
-    0 6px 10px rgba(0, 0, 0, 0.3);
+.lineup .kaart.is-hand .plaatje,
+.labels .kaart.is-hand .plaatje {
+  opacity: 0.6;
 }
-.kaart.is-nee .kaart-beeld {
-  background: #cfc5b1;
-}
-.kaart.is-nee .kaart-beeld > * {
+
+.lineup .kaart.is-nee .plaatje,
+.labels .kaart.is-nee .plaatje {
   filter: grayscale(1);
   opacity: 0.3;
 }
+
 .kaart.is-nee .kaart-naam {
   color: var(--stil);
   text-decoration: line-through 2px;
 }
 
-.kaart.is-misschien {
-  box-shadow:
-    0 0 0 4px var(--misschien),
-    0 5px 0 4px #b0620a,
-    0 10px 18px 4px rgba(0, 0, 0, 0.35);
-}
-
-.kaart.is-ja {
-  transform: translateY(-4px);
-  box-shadow:
-    0 0 0 4px var(--ja),
-    0 5px 0 4px #146b3f,
-    0 0 34px 8px rgba(255, 207, 74, 0.6);
-}
-
 /* Het antwoord van deze groep is al gekend: de rest kan het niet meer zijn. */
 .kaart.is-uitgesloten {
-  opacity: 0.45;
+  opacity: 0.4;
   filter: grayscale(0.8);
 }
 
@@ -464,7 +654,7 @@ button {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(8, 24, 17, 0.62);
+  background: rgba(24, 10, 20, 0.62);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   animation: vervaag 0.15s ease-out;
@@ -551,7 +741,7 @@ button {
 
 .venster-naam {
   font-size: 1.9rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -606,7 +796,7 @@ button {
 
 .keuze-woord {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -644,7 +834,7 @@ button {
   background: #efe3ca;
   box-shadow: 0 4px 0 var(--papier-schaduw);
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .wis:active {
@@ -716,7 +906,7 @@ button {
   padding: 8px 8px 8px 18px;
   border-radius: 999px;
   background: var(--papier);
-  font-weight: 600;
+  font-weight: 700;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -729,8 +919,51 @@ button {
 
 /* ---------- Schermgroottes ---------- */
 
-/* Smal (telefoon). */
+/* iPad liggend: line-up bovenaan, labels en plattegrond naast elkaar. */
+@media (min-width: 900px) and (orientation: landscape) {
+  .app {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr) auto;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      'wie wie knoppen'
+      'waarmee waar waar'
+      'voet voet voet';
+  }
+  .lineup {
+    --lineup-hoogte: clamp(190px, 27vh, 240px);
+  }
+  .labels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 26px 16px;
+  }
+}
+
+/* Smal (telefoon): alles onder elkaar, knoppen bovenaan. */
 @media (max-width: 639px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: 'knoppen' 'wie' 'waarmee' 'waar' 'voet';
+  }
+  .knoppen {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-top: 0;
+  }
+  .lineup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 190px;
+    height: auto;
+  }
+  .labels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 26px 12px;
+  }
+  .plattegrond {
+    min-height: 380px;
+    gap: 10px;
+    padding: 10px;
+  }
   .keuzes {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -740,47 +973,19 @@ button {
   }
 }
 
-/* iPad rechtop: elke groep op één of twee rijen. */
-@media (min-width: 640px) and (orientation: portrait) {
-  .groep-wie .kaarten,
-  .groep-waarmee .kaarten {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-  .groep-waar .kaarten {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-  .kaart {
-    aspect-ratio: 2 / 3;
-  }
-  .groep-waar .kaart {
-    aspect-ratio: 5 / 6;
-  }
-}
-
-/* iPad liggend: de drie groepen naast elkaar. */
-@media (min-width: 900px) and (orientation: landscape) {
-  .groepen {
-    display: grid;
-    grid-template-columns: 2fr 2fr 3fr;
-    gap: 22px;
-    align-items: start;
-  }
-  .groep-wie .kaarten,
-  .groep-waarmee .kaarten {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .kaart {
-    aspect-ratio: 6 / 7;
-  }
-  .groep-waar .kaart {
-    aspect-ratio: 20 / 19;
-  }
-}
-
 /* Kamers zijn brede prentjes: in het keuzevenster mag het vak breder. */
 @media (min-width: 640px) {
   .venster-waar .venster-beeld {
     width: 206px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -801,8 +1006,9 @@ button {
 /* Kleine dierenkopjes op een eigen kaart: aan wie ze al getoond is. */
 .kijkers {
   position: absolute;
-  left: 8px;
-  bottom: 30px;
+  z-index: 2;
+  left: 6px;
+  top: 6px;
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
@@ -836,7 +1042,7 @@ button {
 .getoond-titel {
   margin-bottom: 10px;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .getoond .wis {
@@ -860,7 +1066,7 @@ button {
     0 4px 0 var(--papier-schaduw),
     inset 0 0 0 2px var(--papier-schaduw);
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 700;
   transition: transform 0.08s;
 }
 
@@ -914,7 +1120,7 @@ button {
 .spelers-lijst .speler-naam {
   flex: 1;
   font-size: 1.3rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .verwijder {
