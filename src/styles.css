@@ -88,12 +88,11 @@ button:focus-visible {
   display: grid;
   gap: 18px 20px;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr;
   grid-template-areas:
     'wie knoppen'
     'waarmee waarmee'
-    'waar waar'
-    'voet voet';
+    'waar waar';
   padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
     max(6px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
 }
@@ -124,8 +123,13 @@ button:focus-visible {
   padding-top: 46px;
 }
 
+/* Het versienummer staat in een hoekje, buiten de indeling. */
 .voet {
-  grid-area: voet;
+  position: fixed;
+  right: 8px;
+  bottom: max(4px, env(safe-area-inset-bottom));
+  z-index: 1;
+  pointer-events: none;
 }
 
 .groep h2 {
@@ -587,6 +591,12 @@ button:focus-visible {
   right: auto;
 }
 
+.lineup .merk-nee {
+  top: 42%;
+  width: auto;
+  height: min(58%, 120px);
+}
+
 .plattegrond .merk-nee {
   top: 50%;
   width: auto;
@@ -919,21 +929,57 @@ button:focus-visible {
 
 /* ---------- Schermgroottes ---------- */
 
+/* iPad: alles op één scherm, zonder scrollen. De groepen verdelen de
+   schermhoogte; de kaarten vullen hun deel, in plaats van een vaste maat. */
+@media (min-width: 640px) {
+  .app {
+    height: 100dvh;
+    gap: 14px 18px;
+    grid-template-rows: minmax(0, 24fr) minmax(0, 22fr) minmax(0, 54fr);
+  }
+  .groep {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .groep h2 {
+    margin-bottom: 8px;
+    font-size: 1.3rem;
+  }
+  .groep > .kaarten {
+    flex: 1;
+    min-height: 0;
+  }
+  .lineup {
+    height: auto;
+  }
+  .labels {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .labels .kaart {
+    aspect-ratio: auto;
+    padding-top: 26px;
+  }
+  .plattegrond {
+    min-height: 0;
+  }
+  .knoppen {
+    padding-top: 40px;
+  }
+}
+
 /* iPad liggend: line-up bovenaan, labels en plattegrond naast elkaar. */
 @media (min-width: 900px) and (orientation: landscape) {
   .app {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr) auto;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: minmax(0, 33fr) minmax(0, 67fr);
     grid-template-areas:
       'wie wie knoppen'
-      'waarmee waar waar'
-      'voet voet voet';
-  }
-  .lineup {
-    --lineup-hoogte: clamp(190px, 27vh, 240px);
+      'waarmee waar waar';
   }
   .labels {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 26px 16px;
   }
 }
@@ -943,7 +989,7 @@ button:focus-visible {
   .app {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
-    grid-template-areas: 'knoppen' 'wie' 'waarmee' 'waar' 'voet';
+    grid-template-areas: 'knoppen' 'wie' 'waarmee' 'waar';
   }
   .knoppen {
     flex-direction: row;
