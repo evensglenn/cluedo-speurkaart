@@ -22,7 +22,42 @@ const groepVan = (kaart) => GROEPEN.find((g) => g.kaarten.includes(kaart))
 // Een spel bestaat uit de markering per kaart (spel), per eigen kaart aan
 // welke spelers ze al getoond is (getoond) en, per weggestreepte kaart, hoe
 // je dat weet (bron): de id van de speler die ze liet zien, of BORD.
-const LEEG_SPEL = { spel: {}, getoond: {}, bron: {} }
+//
+// Elk spel heeft ook een eigen indeling: de daders boven of onder, de
+// voorwerpen links of rechts en de kaarten in elke groep geschud. Zo kunnen
+// tegenspelers niet aan de plek van je vinger zien welke kaart je aanduidt.
+// Tijdens het spel blijft alles op zijn plaats.
+const nieuwSpelStaat = () => ({ spel: {}, getoond: {}, bron: {}, indeling: nieuweIndeling() })
+
+function schud(lijst) {
+  const kopie = [...lijst]
+  for (let i = kopie.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[kopie[i], kopie[j]] = [kopie[j], kopie[i]]
+  }
+  return kopie
+}
+
+function nieuweIndeling() {
+  return {
+    wieOnder: Math.random() < 0.5,
+    wapensRechts: Math.random() < 0.5,
+    volgorde: Object.fromEntries(GROEPEN.map((g) => [g.id, schud(g.kaarten.map((k) => k.id))])),
+  }
+}
+
+// Een bewaarde indeling is enkel bruikbaar als elke kaart er precies één keer
+// in staat (bv. niet meer na een nieuwe kaart in een latere versie).
+function geldigeIndeling(indeling) {
+  return GROEPEN.every((g) => {
+    const ids = indeling?.volgorde?.[g.id]
+    return (
+      Array.isArray(ids) &&
+      ids.length === g.kaarten.length &&
+      g.kaarten.every((k) => ids.includes(k.id))
+    )
+  })
+}
 
 // De kaart ligt open op het bord, in een hoekkamer.
 const BORD = 'bord'
@@ -43,10 +78,13 @@ function bewaar(sleutel, waarde) {
 
 function laadSpel() {
   const bewaard = laad(OPSLAG)
-  if (!bewaard || typeof bewaard !== 'object') return LEEG_SPEL
-  // Oudere versies bewaarden enkel de markeringen.
-  if (!bewaard.spel) return { spel: bewaard, getoond: {}, bron: {} }
-  return { spel: bewaard.spel, getoond: bewaard.getoond ?? {}, bron: bewaard.bron ?? {} }
+  if (!bewaard || typeof bewaard !== 'object') return nieuwSpelStaat()
+  // Oudere versies bewaarden enkel de markeringen, en nog geen indeling.
+  const staat = bewaard.spel
+    ? { spel: bewaard.spel, getoond: bewaard.getoond ?? {}, bron: bewaard.bron ?? {} }
+    : { spel: bewaard, getoond: {}, bron: {} }
+  staat.indeling = geldigeIndeling(bewaard.indeling) ? bewaard.indeling : nieuweIndeling()
+  return staat
 }
 
 function laadSpelers() {
@@ -115,8 +153,6 @@ function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
     <button
       type="button"
       className={klassen.join(' ')}
-      // Op de plattegrond heeft elke kamer haar vaste plaats.
-      style={groepVan(kaart).id === 'waar' ? { gridArea: kaart.id } : undefined}
       onClick={() => onKies(kaart)}
       aria-label={kaart.naam}
     >
@@ -142,9 +178,8 @@ function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
   )
 }
 
-// Elke groep heeft een eigen plek uit de speurderswereld: de daders staan in
-// een line-up, de voorwerpen hangen aan bewijslabels en de kamers liggen op
-// de plattegrond van het bord. Het logo staat linksboven in de balk.
+// Elke groep heeft een eigen vorm: de daders staan in een line-up, de
+// voorwerpen zijn kaarten en de kamers liggen als tegels in een raster. Het logo staat bovenaan in het midden van de balk.
 const PLEK = { wie: 'lineup', waarmee: 'labels', waar: 'plattegrond' }
 
 // Het logo van de app (zoals public/favicon.svg, zonder achtergrond): een
@@ -181,7 +216,7 @@ function Midden({ alles }) {
   )
 }
 
-function Groep({ groep, spel, kijkersVan, bronVan, onKies }) {
+function Groep({ groep, volgorde, spel, kijkersVan, bronVan, onKies }) {
   const { antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
@@ -192,7 +227,7 @@ function Groep({ groep, spel, kijkersVan, bronVan, onKies }) {
         </span>
       </h2>
       <div className={`kaarten ${PLEK[groep.id]}`}>
-        {groep.kaarten.map((k) => (
+        {volgorde.map(zoekKaart).map((k) => (
           <Kaart
             key={k.id}
             kaart={k}
@@ -510,7 +545,7 @@ export default function App() {
   const [vraagNieuw, setVraagNieuw] = useState(false)
   const [toonSpelers, setToonSpelers] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
-  const { spel, getoond, bron } = staat
+  const { spel, getoond, bron, indeling } = staat
 
   useEffect(() => bewaar(OPSLAG, staat), [staat])
   useEffect(() => bewaar(SPELERS_OPSLAG, spelers), [spelers])
@@ -521,9 +556,10 @@ export default function App() {
     return () => window.removeEventListener('speurkaart:update-available', onUpdate)
   }, [])
 
+  // De indeling blijft staan, tenzij een nieuw spel een nieuwe meegeeft.
   const wijzig = (nieuw) => {
     setVorige((v) => [...v, staat].slice(-MAX_TERUG))
-    setStaat(nieuw)
+    setStaat({ ...staat, ...nieuw })
   }
 
   const kijkersVan = (kaart) => spelers.filter((s) => getoond[kaart.id]?.includes(s.id))
@@ -572,7 +608,7 @@ export default function App() {
   }
 
   const nieuwSpel = () => {
-    wijzig(LEEG_SPEL)
+    wijzig(nieuwSpelStaat())
     setVraagNieuw(false)
   }
 
@@ -580,7 +616,7 @@ export default function App() {
   const alles = GROEPEN.every((g) => bekijkGroep(g, spel).antwoord)
 
   return (
-    <div className="app">
+    <div className={`app${indeling.wieOnder ? ' wie-onder' : ''}${indeling.wapensRechts ? ' wapens-rechts' : ''}`}>
       <h1 className="verborgen">Cluedo speurkaart</h1>
       <header className="balk">
         <Midden alles={alles} />
@@ -601,6 +637,7 @@ export default function App() {
         <Groep
           key={g.id}
           groep={g}
+          volgorde={indeling.volgorde[g.id]}
           spel={spel}
           kijkersVan={kijkersVan}
           bronVan={bronVan}

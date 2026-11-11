@@ -94,6 +94,18 @@ button:focus-visible {
     max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 
+/* De indeling van dit spel: daders onderaan en/of voorwerpen rechts (of op
+   een smal scherm: na de kamers). */
+.app.wie-onder {
+  grid-template-areas: 'balk' 'waarmee' 'waar' 'wie';
+}
+.app.wapens-rechts {
+  grid-template-areas: 'balk' 'wie' 'waar' 'waarmee';
+}
+.app.wie-onder.wapens-rechts {
+  grid-template-areas: 'balk' 'waar' 'waarmee' 'wie';
+}
+
 .groep-wie {
   grid-area: wie;
   --accent: var(--wie);
@@ -413,17 +425,12 @@ button:focus-visible {
 
 /* ---------- Kamers: de plattegrond van het bord ---------- */
 
-/* Negen even grote tegels, ongeveer zoals de kamers op het Cluedo-bord
-   liggen. */
+/* Negen even grote tegels, in de geschudde volgorde van dit spel. */
 .plattegrond {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(3, minmax(0, 1fr));
-  grid-template-areas:
-    'keuken muziekkamer serre'
-    'eetkamer biljart bibliotheek'
-    'zitkamer hal studeerkamer';
   gap: 12px;
   min-height: 360px;
 }
@@ -1152,6 +1159,15 @@ button:focus-visible {
     height: 100dvh;
     grid-template-rows: auto minmax(0, 24fr) minmax(0, 20fr) minmax(0, 56fr);
   }
+  .app.wie-onder {
+    grid-template-rows: auto minmax(0, 20fr) minmax(0, 56fr) minmax(0, 24fr);
+  }
+  .app.wapens-rechts {
+    grid-template-rows: auto minmax(0, 24fr) minmax(0, 56fr) minmax(0, 20fr);
+  }
+  .app.wie-onder.wapens-rechts {
+    grid-template-rows: auto minmax(0, 56fr) minmax(0, 20fr) minmax(0, 24fr);
+  }
   .groep {
     min-height: 0;
   }
@@ -1179,6 +1195,28 @@ button:focus-visible {
       'balk balk'
       'wie wie'
       'waarmee waar';
+  }
+  .app.wie-onder {
+    grid-template-rows: auto minmax(0, 65fr) minmax(0, 35fr);
+    grid-template-areas:
+      'balk balk'
+      'waarmee waar'
+      'wie wie';
+  }
+  .app.wapens-rechts {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-rows: auto minmax(0, 35fr) minmax(0, 65fr);
+    grid-template-areas:
+      'balk balk'
+      'wie wie'
+      'waar waarmee';
+  }
+  .app.wie-onder.wapens-rechts {
+    grid-template-rows: auto minmax(0, 65fr) minmax(0, 35fr);
+    grid-template-areas:
+      'balk balk'
+      'waar waarmee'
+      'wie wie';
   }
   .labels {
     grid-template-columns: repeat(3, minmax(0, 1fr));
