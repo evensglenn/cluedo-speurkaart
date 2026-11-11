@@ -13,9 +13,13 @@ const ALLE_KAARTEN = GROEPEN.flatMap((g) => g.kaarten)
 const zoekKaart = (id) => ALLE_KAARTEN.find((k) => k.id === id)
 const groepVan = (kaart) => GROEPEN.find((g) => g.kaarten.includes(kaart))
 
-// Een spel bestaat uit de markering per kaart (spel) en, per eigen kaart,
-// aan welke spelers ze al getoond is (getoond).
-const LEEG_SPEL = { spel: {}, getoond: {} }
+// Een spel bestaat uit de markering per kaart (spel), per eigen kaart aan
+// welke spelers ze al getoond is (getoond) en, per weggestreepte kaart, hoe
+// je dat weet (bron): de id van de speler die ze liet zien, of BORD.
+const LEEG_SPEL = { spel: {}, getoond: {}, bron: {} }
+
+// De kaart ligt open op het bord, in een hoekkamer.
+const BORD = 'bord'
 
 function laad(sleutel) {
   try {
@@ -35,8 +39,8 @@ function laadSpel() {
   const bewaard = laad(OPSLAG)
   if (!bewaard || typeof bewaard !== 'object') return LEEG_SPEL
   // Oudere versies bewaarden enkel de markeringen.
-  if (!bewaard.spel) return { spel: bewaard, getoond: {} }
-  return { spel: bewaard.spel, getoond: bewaard.getoond ?? {} }
+  if (!bewaard.spel) return { spel: bewaard, getoond: {}, bron: {} }
+  return { spel: bewaard.spel, getoond: bewaard.getoond ?? {}, bron: bewaard.bron ?? {} }
 }
 
 function laadSpelers() {
@@ -92,13 +96,15 @@ function Merk({ markering }) {
   )
 }
 
-function Kaart({ kaart, markering, antwoord, kijkers, onKies }) {
+function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
   const klassen = ['kaart']
   // Zonder ster, maar als enige overgebleven kaart is het toch het antwoord.
   const isAntwoord = antwoord?.id === kaart.id
   if (isAntwoord && !markering) markering = 'ja'
   if (markering) klassen.push(`is-${markering}`)
   else if (antwoord && !isAntwoord) klassen.push('is-uitgesloten')
+  // Een eigen kaart is het sowieso niet: ze krijgt ook de rode stempel.
+  if (markering === 'hand') klassen.push('is-nee')
   return (
     <button
       type="button"
@@ -112,7 +118,13 @@ function Kaart({ kaart, markering, antwoord, kijkers, onKies }) {
         <Plaatje kaart={kaart} />
       </span>
       <span className="kaart-naam">{kaart.kort}</span>
+      {markering === 'hand' && <Merk markering="nee" />}
       <Merk markering={markering} />
+      {markering === 'nee' && bron && (
+        <span className="kijkers bron" aria-label={bron === BORD ? 'ligt op het bord' : `getoond door ${bron.naam}`}>
+          <i>{bron === BORD ? '🗺️' : bron.dier}</i>
+        </span>
+      )}
       {markering === 'hand' && kijkers.length > 0 && (
         <span className="kijkers" aria-label={`getoond aan ${kijkers.map((s) => s.naam).join(', ')}`}>
           {kijkers.map((s) => (
@@ -151,7 +163,7 @@ function Midden({ alles }) {
   )
 }
 
-function Groep({ groep, spel, alles, kijkersVan, onKies }) {
+function Groep({ groep, spel, alles, kijkersVan, bronVan, onKies }) {
   const { over, antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
@@ -175,6 +187,7 @@ function Groep({ groep, spel, alles, kijkersVan, onKies }) {
             markering={spel[k.id]}
             antwoord={antwoord}
             kijkers={kijkersVan(k)}
+            bron={bronVan(k)}
             onKies={onKies}
           />
         ))}
@@ -183,7 +196,7 @@ function Groep({ groep, spel, alles, kijkersVan, onKies }) {
   )
 }
 
-function Keuze({ kaart, markering, spelers, getoondAan, onZet, onToon, onSpelers, onSluit }) {
+function Keuze({ kaart, markering, spelers, getoondAan, bron, onZet, onToon, onBron, onSpelers, onSluit }) {
   const groep = groepVan(kaart)
   return (
     <div className="scherm" onClick={onSluit}>
@@ -244,6 +257,41 @@ function Keuze({ kaart, markering, spelers, getoondAan, onZet, onToon, onSpelers
                 ))}
               </div>
             ) : (
+              <button type="button" className="wis" onClick={onSpelers}>
+                👥 Spelers toevoegen
+              </button>
+            )}
+          </div>
+        )}
+        {/* Weggestreept: hoe weet je dat? Een speler liet de kaart zien, of
+            ze ligt open op het bord in een hoekkamer. */}
+        {markering === 'nee' && (
+          <div className="getoond getoond-nee">
+            <div className="getoond-titel">🔎 Hoe weet je het?</div>
+            <div className="speler-knoppen">
+              {spelers.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`speler-knop${bron === s.id ? ' is-aan' : ''}`}
+                  onClick={() => onBron(kaart, s.id)}
+                  aria-pressed={bron === s.id}
+                >
+                  <span className="dier">{s.dier}</span>
+                  <span className="speler-naam">{s.naam}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`speler-knop${bron === BORD ? ' is-aan' : ''}`}
+                onClick={() => onBron(kaart, BORD)}
+                aria-pressed={bron === BORD}
+              >
+                <span className="dier">🗺️</span>
+                <span className="speler-naam">Op het bord</span>
+              </button>
+            </div>
+            {!spelers.length && (
               <button type="button" className="wis" onClick={onSpelers}>
                 👥 Spelers toevoegen
               </button>
@@ -358,7 +406,7 @@ export default function App() {
   const [vraagNieuw, setVraagNieuw] = useState(false)
   const [toonSpelers, setToonSpelers] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
-  const { spel, getoond } = staat
+  const { spel, getoond, bron } = staat
 
   useEffect(() => bewaar(OPSLAG, staat), [staat])
   useEffect(() => bewaar(SPELERS_OPSLAG, spelers), [spelers])
@@ -375,6 +423,10 @@ export default function App() {
   }
 
   const kijkersVan = (kaart) => spelers.filter((s) => getoond[kaart.id]?.includes(s.id))
+  const bronVan = (kaart) => {
+    const b = bron[kaart.id]
+    return b === BORD ? BORD : spelers.find((s) => s.id === b)
+  }
 
   const zet = (kaart, markering) => {
     const nieuw = { ...spel }
@@ -385,16 +437,28 @@ export default function App() {
     }
     if (markering && spel[kaart.id] !== markering) nieuw[kaart.id] = markering
     else delete nieuw[kaart.id]
-    wijzig({ spel: nieuw, getoond })
-    // Bij een eigen kaart blijft het venster open, om aan te duiden aan wie
-    // ze getoond is.
-    if (nieuw[kaart.id] !== 'hand') setGekozen(null)
+    // Niet meer weggestreept: dan vervalt ook hoe je het wist.
+    const nieuweBron = { ...bron }
+    if (nieuw[kaart.id] !== 'nee') delete nieuweBron[kaart.id]
+    wijzig({ spel: nieuw, getoond, bron: nieuweBron })
+    // Bij een eigen of weggestreepte kaart blijft het venster open, om aan te
+    // duiden aan wie ze getoond is of hoe je het weet.
+    if (nieuw[kaart.id] !== 'hand' && nieuw[kaart.id] !== 'nee') setGekozen(null)
   }
 
   const toon = (kaart, spelerId) => {
     const nu = getoond[kaart.id] ?? []
     const anders = nu.includes(spelerId) ? nu.filter((id) => id !== spelerId) : [...nu, spelerId]
-    wijzig({ spel, getoond: { ...getoond, [kaart.id]: anders } })
+    wijzig({ spel, getoond: { ...getoond, [kaart.id]: anders }, bron })
+  }
+
+  // Eén bron per kaart; nog eens tikken haalt ze weg.
+  const zetBron = (kaart, waarde) => {
+    const nieuweBron = { ...bron }
+    if (bron[kaart.id] === waarde) delete nieuweBron[kaart.id]
+    else nieuweBron[kaart.id] = waarde
+    wijzig({ spel, getoond, bron: nieuweBron })
+    setGekozen(null)
   }
 
   const terug = () => {
@@ -427,7 +491,15 @@ export default function App() {
       </nav>
 
       {GROEPEN.map((g) => (
-        <Groep key={g.id} groep={g} spel={spel} alles={alles} kijkersVan={kijkersVan} onKies={setGekozen} />
+        <Groep
+          key={g.id}
+          groep={g}
+          spel={spel}
+          alles={alles}
+          kijkersVan={kijkersVan}
+          bronVan={bronVan}
+          onKies={setGekozen}
+        />
       ))}
 
       <footer className="voet">v{APP_VERSION}</footer>
@@ -438,8 +510,10 @@ export default function App() {
           markering={spel[gekozen.id]}
           spelers={spelers}
           getoondAan={getoond[gekozen.id] ?? []}
+          bron={bron[gekozen.id]}
           onZet={zet}
           onToon={toon}
+          onBron={zetBron}
           onSpelers={() => setToonSpelers(true)}
           onSluit={() => setGekozen(null)}
         />

@@ -1245,3 +1245,31 @@ button:focus-visible {
 .toevoegen:disabled {
   opacity: 0.35;
 }
+
+/* ---------- Hoe weet je dat het niet zo is? ---------- */
+
+/* Een eigen voorwerp houdt zijn blauwe label, ook met de rode stempel. */
+.labels .kaart.is-hand.is-nee {
+  --label: #cfe0fb;
+}
+
+/* Het rondje met wie de kaart liet zien, of 🗺️ als ze op het bord ligt. */
+.bron i {
+  box-shadow:
+    0 0 0 2px var(--nee),
+    0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.getoond-nee {
+  background: color-mix(in srgb, var(--nee) 10%, var(--papier));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--nee) 30%, transparent);
+}
+
+.getoond-nee .speler-knop.is-aan {
+  background: var(--nee);
+  box-shadow: 0 4px 0 #93241c;
+}
+
+.getoond-nee .wis {
+  margin-top: 10px;
+}
