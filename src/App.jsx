@@ -6,8 +6,14 @@ const OPSLAG = 'cluedo-speurkaart:spel'
 const SPELERS_OPSLAG = 'cluedo-speurkaart:spelers'
 const MAX_TERUG = 100
 
-// Elke medespeler krijgt een dier, zodat een kind ze herkent zonder te lezen.
-const DIEREN = ['🐻', '🦊', '🐼', '🐸', '🦁', '🐰', '🐯', '🐨', '🐵', '🐶', '🐱', '🦄']
+// Elke medespeler krijgt een plaatje, zodat een kind ze herkent zonder te lezen:
+// een rij dieren, een rij voertuigen en een rij andere leuke dingen. Het
+// gekozen plaatje wordt (om oude spelers te bewaren) nog als 'dier' opgeslagen.
+const ICONEN = [
+  '🐻', '🦊', '🐼', '🐸', '🦁', '🐰', '🐶', '🐱',
+  '🚗', '🏎️', '🚒', '🚓', '🚜', '🚂', '✈️', '🚀',
+  '⚽', '🦖', '🦄', '🤖', '👑', '🌈', '🍕', '🍦',
+]
 
 const ALLE_KAARTEN = GROEPEN.flatMap((g) => g.kaarten)
 const zoekKaart = (id) => ALLE_KAARTEN.find((k) => k.id === id)
@@ -309,16 +315,16 @@ function Keuze({ kaart, markering, spelers, getoondAan, bron, onZet, onToon, onB
 }
 
 function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
-  const vrij = DIEREN.filter((d) => !spelers.some((s) => s.dier === d))
+  const vrij = ICONEN.filter((d) => !spelers.some((s) => s.dier === d))
   const [naam, setNaam] = useState('')
-  const [dier, setDier] = useState(vrij[0] ?? DIEREN[0])
+  const [dier, setDier] = useState(vrij[0] ?? ICONEN[0])
 
   const voegToe = (e) => {
     e.preventDefault()
     if (!naam.trim()) return
     onVoegToe({ id: `${Date.now()}`, naam: naam.trim(), dier })
     setNaam('')
-    setDier(vrij.find((d) => d !== dier) ?? DIEREN[0])
+    setDier(vrij.find((d) => d !== dier) ?? ICONEN[0])
   }
 
   return (
@@ -343,8 +349,8 @@ function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
           </ul>
         )}
         <form className="nieuwe-speler" onSubmit={voegToe}>
-          <div className="dieren" role="radiogroup" aria-label="Dier">
-            {DIEREN.map((d) => (
+          <div className="dieren" role="radiogroup" aria-label="Plaatje">
+            {ICONEN.map((d) => (
               <button
                 key={d}
                 type="button"
