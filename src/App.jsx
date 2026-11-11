@@ -144,8 +144,7 @@ function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
 
 // Elke groep heeft een eigen plek uit de speurderswereld: de daders staan in
 // een line-up, de voorwerpen hangen aan bewijslabels en de kamers liggen op
-// de plattegrond van het bord. Het logo staat rechtsboven, naast de titel van
-// de daders, zodat de negen kamers even groot zijn.
+// de plattegrond van het bord. Het logo staat linksboven in de balk.
 const PLEK = { wie: 'lineup', waarmee: 'labels', waar: 'plattegrond' }
 
 function Midden({ alles }) {
@@ -170,7 +169,7 @@ function Midden({ alles }) {
   )
 }
 
-function Groep({ groep, spel, alles, kijkersVan, bronVan, onKies }) {
+function Groep({ groep, spel, kijkersVan, bronVan, onKies }) {
   const { antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
@@ -179,7 +178,6 @@ function Groep({ groep, spel, alles, kijkersVan, bronVan, onKies }) {
           <span aria-hidden="true">{groep.emoji}</span>
           {groep.titel}
         </span>
-        {groep.id === 'wie' && <Midden alles={alles} />}
       </h2>
       <div className={`kaarten ${PLEK[groep.id]}`}>
         {groep.kaarten.map((k) => (
@@ -260,7 +258,7 @@ function Keuze({ kaart, markering, spelers, getoondAan, bron, onZet, onToon, onB
               </div>
             ) : (
               <button type="button" className="wis" onClick={onSpelers}>
-                👥 Spelers toevoegen
+                <Icoon naam="spelers" /> Spelers toevoegen
               </button>
             )}
           </div>
@@ -295,7 +293,7 @@ function Keuze({ kaart, markering, spelers, getoondAan, bron, onZet, onToon, onB
             </div>
             {!spelers.length && (
               <button type="button" className="wis" onClick={onSpelers}>
-                👥 Spelers toevoegen
+                <Icoon naam="spelers" /> Spelers toevoegen
               </button>
             )}
           </div>
@@ -355,7 +353,9 @@ function Spelers({ spelers, onVoegToe, onWijzig, onVerwijder, onSluit }) {
         <button type="button" className="rond sluit" onClick={onSluit} aria-label="Sluiten">
           ✕
         </button>
-        <div className="venster-naam">👥 Spelers</div>
+        <div className="venster-naam venster-naam-icoon">
+          <Icoon naam="spelers" /> Spelers
+        </div>
         <p className="venster-uitleg">De anderen aan tafel. Ze blijven bewaard, ook bij een nieuw spel.</p>
         {spelers.length > 0 && (
           <ul className="spelers-lijst">
@@ -424,12 +424,57 @@ function Spelers({ spelers, onVoegToe, onWijzig, onVerwijder, onSluit }) {
   )
 }
 
+// Eigen iconen voor de knoppen bovenaan, in één lijnstijl.
+const ICOON_PADEN = {
+  terug: (
+    <>
+      <path d="M9 14 4 9l5-5" />
+      <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+    </>
+  ),
+  spelers: (
+    <>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M6.5 20a5.5 5.5 0 0 1 11 0" />
+      <circle cx="5" cy="10.5" r="2.3" />
+      <path d="M1.5 19.5a3.8 3.8 0 0 1 4.6-3.7" />
+      <circle cx="19" cy="10.5" r="2.3" />
+      <path d="M22.5 19.5a3.8 3.8 0 0 0-4.6-3.7" />
+    </>
+  ),
+  // Een leeg speurblad met een sterretje: opnieuw beginnen.
+  nieuw: (
+    <>
+      <path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z" />
+      <path d="M14 3v5h5" />
+      <path d="m12 10.6 1.1 2.8 2.8 1.1-2.8 1.1L12 18.4l-1.1-2.8-2.8-1.1 2.8-1.1z" fill="currentColor" />
+    </>
+  ),
+}
+
+function Icoon({ naam }) {
+  return (
+    <svg
+      className="icoon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {ICOON_PADEN[naam]}
+    </svg>
+  )
+}
+
 function NieuwSpel({ onJa, onNee }) {
   return (
     <div className="scherm" onClick={onNee}>
       <div className="venster venster-klein" role="dialog" aria-label="Nieuw spel?" onClick={(e) => e.stopPropagation()}>
-        <div className="vraag-emoji" aria-hidden="true">
-          🧹
+        <div className="vraag-icoon">
+          <Icoon naam="nieuw" />
         </div>
         <div className="venster-naam">Nieuw spel?</div>
         <div className="ja-nee">
@@ -525,24 +570,26 @@ export default function App() {
   return (
     <div className="app">
       <h1 className="verborgen">Cluedo speurkaart</h1>
-      <nav className="knoppen">
-        <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
-          ↩︎
-        </button>
-        <button type="button" className="rond" onClick={() => setToonSpelers(true)} aria-label="Spelers">
-          👥
-        </button>
-        <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
-          🧹
-        </button>
-      </nav>
+      <header className="balk">
+        <Midden alles={alles} />
+        <nav className="knoppen">
+          <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
+            <Icoon naam="terug" />
+          </button>
+          <button type="button" className="rond" onClick={() => setToonSpelers(true)} aria-label="Spelers">
+            <Icoon naam="spelers" />
+          </button>
+          <button type="button" className="rond" onClick={() => setVraagNieuw(true)} disabled={leeg} aria-label="Nieuw spel">
+            <Icoon naam="nieuw" />
+          </button>
+        </nav>
+      </header>
 
       {GROEPEN.map((g) => (
         <Groep
           key={g.id}
           groep={g}
           spel={spel}
-          alles={alles}
           kijkersVan={kijkersVan}
           bronVan={bronVan}
           onKies={setGekozen}
