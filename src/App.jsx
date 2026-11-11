@@ -147,6 +147,20 @@ function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
 // de plattegrond van het bord. Het logo staat linksboven in de balk.
 const PLEK = { wie: 'lineup', waarmee: 'labels', waar: 'plattegrond' }
 
+// Het logo van de app (zoals public/favicon.svg, zonder achtergrond): een
+// vergrootglas met de kleuren van daders, voorwerpen en kamers.
+function Logo() {
+  return (
+    <svg className="logo" viewBox="10 10 44 44" aria-hidden="true">
+      <circle cx="28" cy="27" r="14" fill="#222c40" stroke="#f6c744" strokeWidth="5" />
+      <rect x="18.3" y="24.3" width="5.4" height="5.4" rx="1.5" fill="#e0474c" />
+      <rect x="25.3" y="24.3" width="5.4" height="5.4" rx="1.5" fill="#3d7be0" />
+      <rect x="32.3" y="24.3" width="5.4" height="5.4" rx="1.5" fill="#2fa463" />
+      <path d="M38.5 37.5 49 48" stroke="#f6c744" strokeWidth="6.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function Midden({ alles }) {
   return (
     <span className={`midden${alles ? ' is-klaar' : ''}`} aria-live="polite">
@@ -159,9 +173,7 @@ function Midden({ alles }) {
         </>
       ) : (
         <>
-          <span className="midden-teken" aria-hidden="true">
-            🔍
-          </span>
+          <Logo />
           <span className="midden-woord">Cluedo speurkaart</span>
         </>
       )}
