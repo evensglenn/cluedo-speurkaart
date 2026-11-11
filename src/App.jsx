@@ -144,12 +144,13 @@ function Kaart({ kaart, markering, antwoord, kijkers, bron, onKies }) {
 
 // Elke groep heeft een eigen plek uit de speurderswereld: de daders staan in
 // een line-up, de voorwerpen hangen aan bewijslabels en de kamers liggen op
-// de plattegrond van het bord, met in het midden het logo.
+// de plattegrond van het bord. Het logo staat rechtsboven, naast de titel van
+// de daders, zodat de negen kamers even groot zijn.
 const PLEK = { wie: 'lineup', waarmee: 'labels', waar: 'plattegrond' }
 
 function Midden({ alles }) {
   return (
-    <div className={`midden${alles ? ' is-klaar' : ''}`} style={{ gridArea: 'midden' }} aria-live="polite">
+    <span className={`midden${alles ? ' is-klaar' : ''}`} aria-live="polite">
       {alles ? (
         <>
           <span className="midden-teken" aria-hidden="true">
@@ -162,15 +163,15 @@ function Midden({ alles }) {
           <span className="midden-teken" aria-hidden="true">
             🔍
           </span>
-          <span className="midden-woord">Speurkaart</span>
+          <span className="midden-woord">Cluedo speurkaart</span>
         </>
       )}
-    </div>
+    </span>
   )
 }
 
 function Groep({ groep, spel, alles, kijkersVan, bronVan, onKies }) {
-  const { over, antwoord } = bekijkGroep(groep, spel)
+  const { antwoord } = bekijkGroep(groep, spel)
   return (
     <section className={`groep groep-${groep.id}`}>
       <h2>
@@ -178,14 +179,9 @@ function Groep({ groep, spel, alles, kijkersVan, bronVan, onKies }) {
           <span aria-hidden="true">{groep.emoji}</span>
           {groep.titel}
         </span>
-        <span className="nog" aria-label={`nog ${over.length}`}>
-          {over.map((k) => (
-            <i key={k.id} />
-          ))}
-        </span>
+        {groep.id === 'wie' && <Midden alles={alles} />}
       </h2>
       <div className={`kaarten ${PLEK[groep.id]}`}>
-        {groep.id === 'waar' && <Midden alles={alles} />}
         {groep.kaarten.map((k) => (
           <Kaart
             key={k.id}
@@ -314,17 +310,43 @@ function Keuze({ kaart, markering, spelers, getoondAan, bron, onZet, onToon, onB
   )
 }
 
-function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
-  const vrij = ICONEN.filter((d) => !spelers.some((s) => s.dier === d))
+function Spelers({ spelers, onVoegToe, onWijzig, onVerwijder, onSluit }) {
+  // De speler die je aan het wijzigen bent; null = een nieuwe toevoegen.
+  const [bewerk, setBewerk] = useState(null)
+  const vrijVoor = (id) => ICONEN.filter((d) => !spelers.some((s) => s.id !== id && s.dier === d))
+  const vrij = vrijVoor(bewerk)
   const [naam, setNaam] = useState('')
   const [dier, setDier] = useState(vrij[0] ?? ICONEN[0])
 
-  const voegToe = (e) => {
+  const nieuw = () => {
+    setBewerk(null)
+    setNaam('')
+    setDier(vrijVoor(null)[0] ?? ICONEN[0])
+  }
+
+  const begin = (s) => {
+    if (bewerk === s.id) return nieuw()
+    setBewerk(s.id)
+    setNaam(s.naam)
+    setDier(s.dier)
+  }
+
+  const bewaarSpeler = (e) => {
     e.preventDefault()
     if (!naam.trim()) return
+    if (bewerk) {
+      onWijzig(bewerk, { naam: naam.trim(), dier })
+      nieuw()
+      return
+    }
     onVoegToe({ id: `${Date.now()}`, naam: naam.trim(), dier })
     setNaam('')
     setDier(vrij.find((d) => d !== dier) ?? ICONEN[0])
+  }
+
+  const verwijder = (id) => {
+    if (bewerk === id) nieuw()
+    onVerwijder(id)
   }
 
   return (
@@ -338,17 +360,26 @@ function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
         {spelers.length > 0 && (
           <ul className="spelers-lijst">
             {spelers.map((s) => (
-              <li key={s.id}>
-                <span className="dier">{s.dier}</span>
-                <span className="speler-naam">{s.naam}</span>
-                <button type="button" className="verwijder" onClick={() => onVerwijder(s.id)} aria-label={`${s.naam} verwijderen`}>
+              <li key={s.id} className={bewerk === s.id ? 'is-bewerk' : undefined}>
+                <span className="dier">{bewerk === s.id ? dier : s.dier}</span>
+                <span className="speler-naam">{bewerk === s.id ? naam || s.naam : s.naam}</span>
+                <button
+                  type="button"
+                  className={`verwijder${bewerk === s.id ? ' is-aan' : ''}`}
+                  onClick={() => begin(s)}
+                  aria-label={`${s.naam} wijzigen`}
+                  aria-pressed={bewerk === s.id}
+                >
+                  ✏️
+                </button>
+                <button type="button" className="verwijder" onClick={() => verwijder(s.id)} aria-label={`${s.naam} verwijderen`}>
                   🗑️
                 </button>
               </li>
             ))}
           </ul>
         )}
-        <form className="nieuwe-speler" onSubmit={voegToe}>
+        <form className={`nieuwe-speler${bewerk ? ' is-bewerk' : ''}`} onSubmit={bewaarSpeler}>
           <div className="dieren" role="radiogroup" aria-label="Plaatje">
             {ICONEN.map((d) => (
               <button
@@ -373,8 +404,18 @@ function Spelers({ spelers, onVoegToe, onVerwijder, onSluit }) {
               maxLength={14}
               enterKeyHint="done"
             />
-            <button type="submit" className="toevoegen" disabled={!naam.trim()}>
-              ＋
+            {bewerk && (
+              <button type="button" className="annuleer" onClick={nieuw} aria-label="Niet wijzigen">
+                ✕
+              </button>
+            )}
+            <button
+              type="submit"
+              className="toevoegen"
+              disabled={!naam.trim()}
+              aria-label={bewerk ? 'Wijziging bewaren' : 'Speler toevoegen'}
+            >
+              {bewerk ? '✓' : '＋'}
             </button>
           </div>
         </form>
@@ -483,7 +524,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <h1 className="verborgen">Speurkaart</h1>
+      <h1 className="verborgen">Cluedo speurkaart</h1>
       <nav className="knoppen">
         <button type="button" className="rond" onClick={terug} disabled={!vorige.length} aria-label="Terug">
           ↩︎
@@ -528,6 +569,7 @@ export default function App() {
         <Spelers
           spelers={spelers}
           onVoegToe={(s) => setSpelers((lijst) => [...lijst, s])}
+          onWijzig={(id, nieuw) => setSpelers((lijst) => lijst.map((s) => (s.id === id ? { ...s, ...nieuw } : s)))}
           onVerwijder={(id) => setSpelers((lijst) => lijst.filter((s) => s.id !== id))}
           onSluit={() => setToonSpelers(false)}
         />

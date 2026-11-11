@@ -155,21 +155,6 @@ button:focus-visible {
     inset 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
-/* Eén bolletje per kaart die het nog kan zijn. */
-.nog {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.nog i {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--papier);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-}
-
 /* ---------- Knoppen ---------- */
 
 .rond {
@@ -384,17 +369,16 @@ button:focus-visible {
 
 /* ---------- Kamers: de plattegrond van het bord ---------- */
 
-/* De kamers liggen zoals op het Cluedo-bord, met de gele gangvakjes ertussen
-   en het logo in het midden. */
+/* De kamers liggen ongeveer zoals op het Cluedo-bord, met de gele gangvakjes
+   ertussen. Alle negen even groot: het logo staat rechtsboven. */
 .plattegrond {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
   grid-template-areas:
     'keuken muziekkamer serre'
-    'eetkamer midden biljart'
-    'eetkamer midden bibliotheek'
+    'eetkamer biljart bibliotheek'
     'zitkamer hal studeerkamer';
   gap: 16px;
   min-height: 420px;
@@ -463,38 +447,38 @@ button:focus-visible {
 }
 
 .midden {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  border-radius: 3px;
-  background:
-    radial-gradient(circle at 50% 40%, #7a2a3a, #4a1424 75%);
-  box-shadow: 0 0 0 5px var(--hout);
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 16px 8px 12px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 40%, #7a2a3a, #4a1424 75%);
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 3px var(--hout);
   color: var(--goud);
-  text-align: center;
+  white-space: nowrap;
 }
 
 .midden-teken {
-  font-size: clamp(2.6rem, 7vmin, 4rem);
+  font-size: 1.3em;
   line-height: 1;
 }
 
 .midden-woord {
   font-family: 'Grandstander', 'Andika', sans-serif;
-  font-size: clamp(1.4rem, 3.4vmin, 2.2rem);
   font-weight: 800;
   line-height: 1;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
 }
 
 .midden.is-klaar {
   background: var(--goud);
   color: var(--inkt);
   box-shadow:
-    0 0 0 5px var(--hout),
-    0 0 40px 10px rgba(255, 207, 74, 0.8);
+    0 0 0 3px var(--hout),
+    0 0 30px 8px rgba(255, 207, 74, 0.8);
   animation: wiebel 0.9s ease-in-out 2;
 }
 
@@ -996,6 +980,9 @@ button:focus-visible {
     justify-content: flex-end;
     padding-top: 0;
   }
+  .groep h2 {
+    flex-wrap: wrap;
+  }
   .lineup {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-rows: 190px;
@@ -1244,6 +1231,27 @@ button:focus-visible {
 
 .toevoegen:disabled {
   opacity: 0.35;
+}
+
+/* Een bestaande speler wijzigen: de rij en het formulier lichten op. */
+.spelers-lijst li.is-bewerk,
+.nieuwe-speler.is-bewerk {
+  box-shadow: 0 0 0 3px var(--hand);
+}
+
+.verwijder.is-aan {
+  background: var(--papier);
+}
+
+.annuleer {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--papier);
+  box-shadow: 0 4px 0 var(--papier-schaduw);
+  color: var(--inkt);
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 /* ---------- Hoe weet je dat het niet zo is? ---------- */
